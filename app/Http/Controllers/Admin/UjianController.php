@@ -1,0 +1,114 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\RequestUjian;
+use App\Models\Kategori;
+use App\Models\Student;
+use App\Models\Ujian;
+use Illuminate\Http\Request;
+use App\Models\CategoryExam as ModelsCategoryExam;
+use Illuminate\Support\Facades\Auth;
+
+class UjianController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+        $user = Auth::id();
+        $ujian = Ujian::where('user_id',$user)->paginate(10);
+        return view('admin.ujian.index', compact('ujian'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        $user = Auth::id();
+        $siswa = Student::all();
+        $kategori = Kategori::where('user_id', $user)->get();
+        $jenis_ujian  = ModelsCategoryExam::where('user_id',$user)->get();
+        return view('admin.ujian.create', compact('siswa', 'kategori', 'jenis_ujian','user'));
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(RequestUjian $request)
+    {
+        foreach ($request->siswa_id as $siswaId) {
+            Ujian::create([
+                'kelas' => $request->kelas,
+                'tanggal_ujian' => $request->tanggal_ujian,
+                'jam_ujian' => $request->jam_ujian,
+                'category_id' => $request->category_id,
+                'kategori_id' => $request->kategori_id,
+                'user_id' => $request->user_id,
+                'siswa_id' => $siswaId,
+                'durasi' => $request->durasi,
+                'status' => 'Belum Dimulai'
+            ]);
+        }
+
+        return redirect()->route('ujian.index')->with('success', 'Data ujian berhasil ditambahkan');
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Ujian $ujian)
+    {
+        $user = Auth::id();
+        $siswa = Student::all();
+        $kategori =  Kategori::all();
+        $jenis_ujian  = ModelsCategoryExam::all();
+        return view('admin.ujian.edit', compact('ujian', 'siswa', 'kategori', 'jenis_ujian','user'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(RequestUjian $request, Ujian $ujian)
+    {
+        // Validate the incoming request data
+        $validated = $request->validated();
+    
+        // Delete existing ujian records related to this ujian instance
+        $ujian->where('kelas', $ujian->kelas)
+              ->where('tanggal_ujian', $ujian->tanggal_ujian)
+              ->where('jam_ujian', $ujian->jam_ujian)
+              ->delete();
+    
+        // Re-create the ujian records for each selected siswa
+        foreach ($request->siswa_id as $siswaId) {
+            Ujian::create([
+                'kelas' => $validated['kelas'],
+                'tanggal_ujian' => $validated['tanggal_ujian'],
+                'jam_ujian' => $validated['jam_ujian'],
+                'category_id' => $validated['category_id'],
+                'kategori_id' => $validated['kategori_id'],
+                'user_id' => $validated['user_id'],
+                'siswa_id' => $siswaId,
+                'durasi' => $validated['durasi'],
+                'status' => 'Belum Dimulai'
+            ]);
+        }
+    
+        return redirect()->route('ujian.index')->with('success', 'Data ujian berhasil diperbarui');
+    }
+    
+
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Ujian $ujian)
+    {
+        $ujian->delete();
+        return redirect()->route('ujian.index')->with('success', 'Data ujian berhasil dihapus');
+    }
+}
