@@ -24,42 +24,42 @@
                 </div>
                 <div class="form-group">
                     <label for="soal_ujian">Soal Ujian</label>
-                    <textarea name="soal_ujian" id="editor1" cols="30" rows="10"></textarea>
+                    <textarea name="soal_ujian" id="editor" cols="30" rows="10"></textarea>
                     @error('soal_ujian')
                         <span class="text-danger">{{ $message }}</span>
                     @enderror
                 </div>
                 <div class="form-group">
                     <label for="kunci_A">Jawaban A</label>
-                    <input id="kunci_A" class="form-control" type="text" name="kunci_A">
+                    <textarea name="kunci_A" id="A" cols="30" rows="10"></textarea>
                     @error('kunci_A')
                         <span class="text-danger">{{ $message }}</span>
                     @enderror
                 </div>
                 <div class="form-group">
                     <label for="kunci_B">Jawaban B</label>
-                    <input id="kunci_B" class="form-control" type="text" name="kunci_B">
+                    <textarea name="kunci_B" id="B" cols="30" rows="10"></textarea>
                     @error('kunci_B')
                         <span class="text-danger">{{ $message }}</span>
                     @enderror
                 </div>
                 <div class="form-group">
                     <label for="kunci_C">Jawaban C</label>
-                    <input id="kunci_C" class="form-control" type="text" name="kunci_C">
+                    <textarea name="kunci_C"" id="C" cols="30" rows="10"></textarea>
                     @error('kunci_C')
                         <span class="text-danger">{{ $message }}</span>
                     @enderror
                 </div>
                 <div class="form-group">
                     <label for="kunci_D">Jawaban D</label>
-                    <input id="kunci_D" class="form-control" type="text" name="kunci_D">
+                    <textarea name="kunci_D" id="D" cols="30" rows="10"></textarea>
                     @error('kunci_D')
                         <span class="text-danger">{{ $message }}</span>
                     @enderror
                 </div>
                 <div class="form-group">
                     <label for="kunci_E">Jawaban E</label>
-                    <input id="kunci_E" class="form-control" type="text" name="kunci_E">
+                    <textarea name="kunci_E" id="E" cols="30" rows="10"></textarea>
                     @error('kunci_E')
                         <span class="text-danger">{{ $message }}</span>
                     @enderror
@@ -83,4 +83,6 @@
 
         </x-pages.card>
     </x-pages.container>
+    @include('admin.Soal.ckeditor')
+    @include('admin.Soal.ckeditor_jawaban')
 </x-admin>

@@ -20,15 +20,37 @@
     <link rel="stylesheet" href="/assets/icons/font-awesome/css/font-awesome.min.css">
     <!-- Custom Stylesheet -->
     <link href="/assets/css/style.css" rel="stylesheet">
-    <script src="/assets/ckeditor/ckeditor.js"></script>
-    <script src="/assets/ckeditor/styles.js"></script>
-    
+    {{-- <script src="/ckeditor/ckeditor.js"></script>
+    <script src="/ckeditor/styles.js"></script> --}}
     @vite(['resources/css/app.css'])
+    <style>
+        /* Untuk mengatur container soal dan jawaban */
+.flex-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px; /* Menambahkan sedikit jarak antara jawaban */
+}
+
+/* Mengatur huruf pilihan (A, B, C, D, E) */
+.flex-container .choice-letter {
+    width: 20px; /* Atur lebar agar sesuai dengan huruf */
+    font-weight: bold; /* Menebalkan huruf pilihan */
+    margin-right: 10px; /* Menambahkan jarak antara huruf dan jawaban */
+}
+
+/* Mengatur teks jawaban */
+.flex-container .answer-content {
+    flex: 1; /* Mengatur jawaban agar menempati sisa ruang */
+    word-wrap: break-word; /* Jika teks jawaban panjang, akan pindah ke baris baru */
+}
+
+    </style>
 
 
 </head>
+
 <body>
-    
+
 
     <!--*******************
         Preloader start
@@ -86,12 +108,13 @@
                             <div class="user-img c-pointer position-relative" data-toggle="dropdown">
                                 <span class="activity active"></span>
                                 @php
-                                $user = Auth::user();
+                                    $user = Auth::user();
                                 @endphp
                                 @if (Auth()->user()->isAdmin == 1)
-                                <img src="/assets/images/admin.png" height="40" width="40" alt="">
+                                    <img src="/assets/images/admin.png" height="40" width="40" alt="">
                                 @elseif (Auth()->user()->isAdmin == 0)
-                                <img src="{{ Storage::url($user->image) }}" height="40" width="40" alt="">
+                                    <img src="{{ Storage::url($user->image) }}" height="40" width="40"
+                                        alt="">
                                 @endif
                             </div>
                             <div class="drop-down dropdown-profile animated fadeIn dropdown-menu">
@@ -179,12 +202,8 @@
 
     <script src="/assets/js/dashboard/dashboard-1.js"></script>
     <script src="https://kit.fontawesome.com/be87c3e44a.js" crossorigin="anonymous"></script>
-    <script>
-        CKEDITOR.replace('editor1', {
-            extraAllowedContent: 'ol li{list-style-type};p[*](*){*}', // Memastikan semua elemen daftar diizinkan
 
-        });
-    </script>
+   
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
     <script>
         function confirmDelete(id) {

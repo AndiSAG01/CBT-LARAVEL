@@ -14,18 +14,18 @@ class RestrictIpMiddleware
      * @param  \Closure  $next
      * @return mixed
      */
-    public function handle(Request $request, Closure $next)
-    {
-        // Cetak alamat IP yang diterima Laravel
-        // dd($request->ip());
+    // public function handle(Request $request, Closure $next)
+    // {
+    //     // Cetak alamat IP yang diterima Laravel
+    //     // dd($request->ip());
     
-        $allowed_ips = ['192.168.42.162'];
+    //     $allowed_ips = ['192.168.43.204'];
     
-        if (!in_array($request->ip(), $allowed_ips)) {
-            return response()->json(['message' => 'Akses ditolak'], 403);
-        }
+    //     if (!in_array($request->ip(), $allowed_ips)) {
+    //         return response()->json(['message' => 'Akses ditolak'], 403);
+    //     }
     
-        return $next($request);
-    }
+    //     return $next($request);
+    // }
     
 }

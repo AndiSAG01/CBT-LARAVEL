@@ -66,4 +66,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Ujian::class);
     }
+
+    public function exams():HasMany
+    {
+        return $this->hasMany(ExamAnswer::class);
+    }
 }

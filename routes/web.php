@@ -88,6 +88,7 @@ Route::middleware(['auth'])->group(function () {
     
     Route::get('/admin/hasil-ujian', [DashboardController::class, 'hasil'])->name('ujian.hasil');
     Route::get('/Cetak-Hasil-Ujian', [DashboardController::class, 'cetaksemua'])->name('hasil.cetak');
+    Route::get('/contoh',[DashboardController::class,'contoh'])->name('contoh');
 });
 
 
@@ -104,6 +105,7 @@ Route::middleware(['auth:student', 'siswa'])->group(function () {
 
     Route::get('/exam/{ujian}/soal/{kategori_id?}', [ExamController::class, 'index'])->name('exam.index');
     Route::post('/exam/store', [ExamController::class, 'storeAnswer'])->name('exam.store');
+
 
     Route::get('hasil-ujian', [PagesController::class, 'hasil'])->name('hasil.index');
 

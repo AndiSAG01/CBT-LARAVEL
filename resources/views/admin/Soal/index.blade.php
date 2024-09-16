@@ -81,48 +81,77 @@
                                 <x-Tables.td>
                                     {{ $item->kategori->name }}
                                 </x-Tables.td>
-                                <x-Tables.td>
-                                    {!! $item->soal_ujian !!}
-                                    <p>
-                                        @if ($item->kunci_jawaban == 'A')
-                                            <strong>A. {{ $item->kunci_A }}</strong>
-                                        @else
-                                            A. {{ $item->kunci_A }}
+                                <td class="p-4 border-b border-blue-gray-50" style="width: 600px">
+                                    <div class="flex flex-col">
+                                        <div class="mt-2">
+                                            {!! $item->soal_ujian !!}
+                                        </div>
+                                        
+                                        <!-- Jawaban A -->
+                                        <div class="flex-container mt-2">
+                                            <div class="choice-letter">A.</div>
+                                            <div class="answer-content">
+                                                @if ($item->kunci_jawaban == 'A')
+                                                    <strong>{!! $item->kunci_A !!}</strong>
+                                                @else
+                                                    {!! $item->kunci_A !!}
+                                                @endif
+                                            </div>
+                                        </div>
+                                
+                                        <!-- Jawaban B -->
+                                        <div class="flex-container">
+                                            <div class="choice-letter">B.</div>
+                                            <div class="answer-content">
+                                                @if ($item->kunci_jawaban == 'B')
+                                                    <strong>{!! $item->kunci_B !!}</strong>
+                                                @else
+                                                    {!! $item->kunci_B !!}
+                                                @endif
+                                            </div>
+                                        </div>
+                                
+                                        <!-- Jawaban C -->
+                                        <div class="flex-container">
+                                            <div class="choice-letter">C.</div>
+                                            <div class="answer-content">
+                                                @if ($item->kunci_jawaban == 'C')
+                                                    <strong>{!! $item->kunci_C !!}</strong>
+                                                @else
+                                                    {!! $item->kunci_C !!}
+                                                @endif
+                                            </div>
+                                        </div>
+                                
+                                        <!-- Jawaban D -->
+                                        <div class="flex-container">
+                                            <div class="choice-letter">D.</div>
+                                            <div class="answer-content">
+                                                @if ($item->kunci_jawaban == 'D')
+                                                    <strong>{!! $item->kunci_D !!}</strong>
+                                                @else
+                                                    {!! $item->kunci_D !!}
+                                                @endif
+                                            </div>
+                                        </div>
+                                
+                                        <!-- Jawaban E (Jika ada) -->
+                                        @if (!empty($item->kunci_E))
+                                            <div class="flex-container">
+                                                <div class="choice-letter">E.</div>
+                                                <div class="answer-content">
+                                                    @if ($item->kunci_jawaban == 'E')
+                                                        <strong>{!! $item->kunci_E !!}</strong>
+                                                    @else
+                                                        {!! $item->kunci_E !!}
+                                                    @endif
+                                                </div>
+                                            </div>
                                         @endif
-                                    </p>
-
-                                    <p>
-                                        @if ($item->kunci_jawaban == 'B')
-                                            <strong>B. {{ $item->kunci_B }}</strong>
-                                        @else
-                                            B. {{ $item->kunci_B }}
-                                        @endif
-                                    </p>
-                                    <p>
-                                        @if ($item->kunci_jawaban == 'C')
-                                            <strong>C. {{ $item->kunci_C }}</strong>
-                                        @else
-                                            C. {{ $item->kunci_C }}
-                                        @endif
-                                    </p>
-
-                                    <p>
-                                        @if ($item->kunci_jawaban == 'D')
-                                            <strong>D. {{ $item->kunci_D }}</strong>
-                                        @else
-                                            D. {{ $item->kunci_D }}
-                                        @endif
-                                    </p>
-
-                                    <p>
-                                        @if ($item->kunci_jawaban == 'E')
-                                            <strong>E. {{ $item->kunci_E }}</strong>
-                                        @else
-                                            E. {{ $item->kunci_E }}
-                                        @endif
-                                    </p>
-
-                                </x-Tables.td>
+                                    </div>
+                                </td>
+                                
+                                
                                 <x-Tables.td>
                                     {{ $item->kunci_jawaban }}
                                 </x-Tables.td>

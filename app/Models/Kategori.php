@@ -20,12 +20,13 @@ Kategori extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function soal():HasMany
+    public function soals():HasMany
     {
         return $this->hasMany(Soal::class);
     }
-    public function ujian():HasMany
+    public function ujians():HasMany
     {
         return $this->hasMany(Ujian::class);
     }
+
 }

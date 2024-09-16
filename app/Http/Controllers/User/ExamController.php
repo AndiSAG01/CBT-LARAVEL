@@ -7,24 +7,54 @@ use App\Models\ExamAnswer;
 use App\Models\Soal;
 use App\Models\Student;
 use App\Models\Ujian;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class ExamController extends Controller
-{
+{   
     public function index(Ujian $ujian)
     {
+        // Get the authenticated user
         $user = Auth::user();
-
-        // Fetch soals only for the logged-in teacher
-        $soals = Soal::where('kategori_id', $ujian->kategori_id) // Assuming you also want to filter by kategori_id
-            ->paginate(10);
-
-        return view('user.Ujian.index', compact('ujian', 'user', 'soals'));
+    
+        // Fetch all questions for the given exam category to display in the navigation
+        $allSoals = Soal::where('kategori_id', $ujian->kategori_id)->get();
+    
+        // Paginate questions to display one at a time (paginate 1 question)
+        $soals = Soal::where('kategori_id', $ujian->kategori_id)->paginate(1);
+    
+        // Retrieve student's answered questions from the ExamAnswer model
+        $answeredSoals = ExamAnswer::where('student_id', $user->id)
+                                   ->where('ujian_id', $ujian->id)
+                                   ->pluck('answer', 'soal_id');
+    
+        // Waktu mulai ujian dari database
+        $waktuMulaiUjian = Carbon::parse($ujian->jam_ujian);
+    
+        // Waktu saat siswa membuka ujian (misalnya sekarang)
+        $waktuSekarang = Carbon::now();
+    
+        // Hitung selisih waktu keterlambatan (dalam menit)
+        $selisihWaktu = $waktuMulaiUjian->diffInMinutes($waktuSekarang, false);
+    
+        // Jika siswa terlambat (selisih positif), kurangi durasi ujian
+        if ($selisihWaktu > 0) {
+            $durasiUjian = $ujian->durasi - $selisihWaktu; // Durasi dikurangi waktu keterlambatan
+        } else {
+            $durasiUjian = $ujian->durasi; // Jika tidak terlambat, gunakan durasi penuh
+        }
+    
+        // Pastikan durasi tidak negatif
+        $durasiUjian = max($durasiUjian, 0); 
+    
+        // Mengirimkan data ke view
+        return view('user.Ujian.index', compact('ujian', 'user', 'allSoals', 'soals', 'answeredSoals', 'durasiUjian', 'waktuMulaiUjian', 'waktuSekarang'));
     }
+    
+    
 
-
-
+    
 
     public function startExam($examId)
     {

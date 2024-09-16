@@ -83,198 +83,325 @@
     }
 
     .soal-container {
-    margin-bottom: 20px;
-}
+        display: flex;
+        align-items: flex-start;
+        /* Aligns the content at the top */
+        margin-bottom: 15px;
+    }
 
-.soal-number {
-    font-weight: bold;
-    font-size: 16px;
-    margin-right: 10px;
-}
+    .soal-number {
+        font-weight: bold;
+        font-size: 16px;
+        margin-right: 10px;
+    }
 
-.soal-content {
-    display: inline-block;
-    font-size: 14px;
-    line-height: 1.5;
-}
+    .soal-content {
+        font-size: 14px;
+        line-height: 1.5;
+    }
 
+    .soal-content img {
+        max-width: 70%;
+        height: auto;
+        margin: 0 auto;
+    }
 
+    .form-check-label img {
+        max-width: 70%;
+        /* Membuat gambar menyesuaikan lebar container */
+        height: auto;
+        /* Menjaga proporsi gambar */
+        margin: 5px 0;
+        /* Beri sedikit margin untuk gambar */
+    }
+
+    .form-check {
+        padding: 5px;
+        margin-bottom: 10px;
+    }
+
+    #soal-info {
+        display: none;
+        /* Sembunyikan awalnya */
+    }
 </style>
 
 
 
 <body>
+    <!-- Navbar with User Info -->
     <nav class="navbar navbar-light bg-primary">
         <div class="container">
             <a class="navbar-brand" href="#">
-                <img src="{{ Storage::url($user->image) }}" class="rounded-circle" alt="" width="40"
+                <img src="{{ Storage::url($user->image) }}" class="rounded-circle" alt="User Image" width="40"
                     height="40">
                 <span class="text-white">{{ $user->name }}</span>
             </a>
             <span class="text-white"><b>Ujian Daring</b></span>
         </div>
     </nav>
+
+    <!-- Main Container -->
     <x-pages.container>
         <div class="row">
+            <!-- Left Sidebar with Timer and Answered Questions -->
             <div class="col-sm-4 mb-4">
+                <!-- Countdown Timer Card -->
                 <x-pages.card>
                     <h5 class="text-center">Waktu Ujian</h5>
-                    <div id="countdown" class="countdown-timer"></div>
+                    <div id="countdown" class="countdown-timer text-center h4"></div>
                 </x-pages.card>
 
+                <!-- Answered Questions Card -->
                 <div class="card mt-4">
                     <div class="question-navigation">
-                        <div id="status-indicator" class="mt-2">0 dikerjakan</div>
-                        <div class="question-buttons">
-                            @foreach ($soals as $index => $soal)
-                                <button class="question-button"
-                                    data-id="{{ $soal->id }}">{{ $index + 1 }}</button>
-                            @endforeach
-                        </div>
+                        <h5 class="card-header">Soal yang Sudah Dijawab</h5>
+                        <div class="card-body">
+                            @if (count($answeredSoals) > 0)
+                                <div id="answered-questions">
+                                    <span>Nomor soal yang sudah dijawab:</span>
+                                    <div class="answered-question-buttons mt-3">
+                                        @foreach ($allSoals as $index => $soal)
+                                            @if (in_array($soal->id, $answeredSoals))
+                                                <button class="btn btn-primary m-1">
+                                                    {{ $index + 1 }}
+                                                </button>
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @else
+                                <p>Belum ada soal yang dijawab.</p>
+                            @endif
+                        </div>                        
                     </div>
                 </div>
             </div>
+
+            <!-- Main Content Area with Questions -->
             <div class="col-sm-8">
                 <x-pages.card>
-
-                    <form id="exam-form" action="{{ route('exam.store') }}" method="POST">
+                    <form id="examForm" action="{{ route('exam.store') }}" method="POST"
+                        enctype="multipart/form-data">
                         @csrf
                         <input type="hidden" name="ujian_id" value="{{ $ujian->id }}">
                         <input type="hidden" id="duration" value="{{ $ujian->durasi }}">
 
+                        <!-- Loop through each question -->
                         @foreach ($soals as $soal)
+                            @php
+                                // Calculate the correct question number considering pagination
+                                $questionNumber = ($soals->currentPage() - 1) * $soals->perPage() + $loop->iteration;
+                            @endphp
+
                             <div class="mb-4">
-                                <div class="soal-container">
-                                    <span class="soal-number">{{ $loop->iteration }}.</span>
+                                <!-- Question Display -->
+                                <div class="soal-container mb-2">
+                                    <span class="soal-number">{{ $questionNumber }}.</span>
                                     <div class="soal-content">{!! $soal->soal_ujian !!}</div>
-                                </div>                                
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="answers[{{ $soal->id }}]"
-                                        value="A">
-                                    <label class="form-check-label">{{ $soal->kunci_A }}</label>
                                 </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="answers[{{ $soal->id }}]"
-                                        value="B">
-                                    <label class="form-check-label">{{ $soal->kunci_B }}</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="answers[{{ $soal->id }}]"
-                                        value="C">
-                                    <label class="form-check-label">{{ $soal->kunci_C }}</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="answers[{{ $soal->id }}]"
-                                        value="D">
-                                    <label class="form-check-label">{{ $soal->kunci_D }}</label>
-                                </div>
-                                @if (!empty($soal->kunci_E))
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio"
-                                            name="answers[{{ $soal->id }}]" value="E">
-                                        <label class="form-check-label">{{ $soal->kunci_E }}</label>
-                                    </div>
-                                @endif
+
+                                <!-- Answer Options -->
+                                @foreach (['A', 'B', 'C', 'D', 'E'] as $option)
+                                    @if (!empty($soal->{'kunci_' . $option}))
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio"
+                                                name="answers[{{ $soal->id }}]" value="{{ $option }}"
+                                                {{ isset($answeredSoals[$soal->id]) && $answeredSoals[$soal->id] == $option ? 'checked' : '' }}>
+                                            <label class="form-check-label">{!! $soal->{'kunci_' . $option} !!}</label>
+                                        </div>
+                                    @endif
+                                @endforeach
                             </div>
                         @endforeach
 
-                        {{ $soals->links('pagination::bootstrap-4') }}
-                        <!-- Submit Button with JavaScript confirmation -->
-                        <button type="submit" class="btn btn-primary"
+                        <!-- Pagination Links -->
+                        <div class="mt-4">
+                            {{ $soals->links('pagination::bootstrap-4') }}
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="btn btn-primary mt-3"
                             onclick="return confirm('Apakah jawaban Anda sudah terisi semua?')">
                             Submit
                         </button>
-
-
                     </form>
-
                 </x-pages.card>
             </div>
         </div>
-
-        <script>
-            let answeredCount = 0;
-
-            // Kembalikan jawaban dari localStorage saat halaman dimuat
-            window.addEventListener('load', () => {
-                let answers = JSON.parse(localStorage.getItem('answers')) || {};
-                document.querySelectorAll('.form-check-input').forEach(input => {
-                    const questionId = input.name.match(/\d+/)[0];
-                    if (answers[questionId] && input.value === answers[questionId]) {
-                        input.checked = true;
-                        const button = document.querySelector(`.question-button[data-id="${questionId}"]`);
-                        button.classList.add('answered');
-                        answeredCount++;
-                    }
-                });
-                document.getElementById('status-indicator').textContent = `${answeredCount} dikerjakan`;
-            });
-
-            // Simpan jawaban ke localStorage saat input berubah
-            document.querySelectorAll('.form-check-input').forEach(input => {
-                input.addEventListener('change', function() {
-                    const questionId = this.name.match(/\d+/)[0];
-                    const button = document.querySelector(`.question-button[data-id="${questionId}"]`);
-
-                    let answers = JSON.parse(localStorage.getItem('answers')) || {};
-                    answers[questionId] = this.value;
-                    localStorage.setItem('answers', JSON.stringify(answers));
-
-                    if (!button.classList.contains('answered')) {
-                        button.classList.add('answered');
-                        answeredCount++;
-                        document.getElementById('status-indicator').textContent = `${answeredCount} dikerjakan`;
-                    }
-                });
-            });
-
-            // Hitung mundur waktu ujian
-            let duration = {{ $ujian->durasi }};
-
-            function initializeCountdown() {
-                let now = new Date().getTime();
-                let examEndTime = localStorage.getItem('examEndTime');
-
-                if (!examEndTime) {
-                    examEndTime = now + duration * 60000;
-                    localStorage.setItem('examEndTime', examEndTime);
-                }
-
-                let countdown = setInterval(function() {
-                    let currentTime = new Date().getTime();
-                    let timeLeft = examEndTime - currentTime;
-
-                    let minutes = Math.floor(timeLeft / (1000 * 60));
-                    let seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-
-                    let countdownElement = document.getElementById('countdown');
-                    countdownElement.innerHTML = minutes + "m " + seconds + "s ";
-
-                    if (timeLeft <= 0) {
-                        clearInterval(countdown);
-                        countdownElement.innerHTML = "Waktu Habis";
-
-                        // Redirect to the Jadwal Ujian page
-                        window.location.href = "{{ route('jadwal.index') }}";
-
-                        // Remove stored data from local storage
-                        localStorage.removeItem('examEndTime');
-                        localStorage.removeItem('answers');
-                    }
-
-                }, 1000);
-            }
-
-            initializeCountdown();
-
-            // Hapus jawaban dari localStorage setelah submit
-            document.getElementById('exam-form').addEventListener('submit', function() {
-                localStorage.removeItem('answers');
-                localStorage.removeItem('examEndTime');
-            });
-        </script>
     </x-pages.container>
+
 </body>
+
+<script>
+    // Durasi ujian dalam menit setelah dikurangi keterlambatan
+    const examDurationMinutes = @json($durasiUjian); // Durasi yang dikirim dari controller
+
+    // Dapatkan waktu sekarang
+    const currentTime = new Date().getTime();
+
+    // Hitung waktu akhir ujian berdasarkan durasi yang tersisa
+    const examEndTime = currentTime + examDurationMinutes * 60 * 1000; // durasi dalam milidetik
+
+    function updateCountdown() {
+        const now = new Date().getTime();
+        const remainingTime = examEndTime - now;
+
+        // Jika waktu habis, submit form otomatis
+        if (remainingTime <= 0) {
+            document.getElementById('countdown').innerText = 'Waktu Habis';
+            
+            // Submit form otomatis
+            document.getElementById('examForm').submit();
+
+            // Redirect ke halaman jadwal.index setelah submit
+            setTimeout(function(){
+                window.location.href = "{{ route('jadwal.index') }}";
+            }, 1000); // Delay 1 detik agar form selesai tersubmit sebelum redirect
+
+            return;
+        }
+
+        // Hitung menit dan detik yang tersisa
+        const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
+
+        // Tampilkan waktu tersisa dalam format menit dan detik
+        document.getElementById('countdown').innerText = `${minutes}m ${seconds}s`;
+
+        // Update countdown setiap 1 detik
+        setTimeout(updateCountdown, 1000);
+    }
+
+    // Mulai countdown
+    updateCountdown();
+</script>
+<script>
+    let answeredCount = 0;
+
+    // Kembalikan jawaban dari localStorage saat halaman dimuat
+    window.addEventListener('load', () => {
+        let answers = JSON.parse(localStorage.getItem('answers')) || {};
+        document.querySelectorAll('.form-check-input').forEach(input => {
+            const questionId = input.name.match(/\d+/)[0];
+            if (answers[questionId] && input.value === answers[questionId]) {
+                input.checked = true;
+                const button = document.querySelector(`.question-button[data-id="${questionId}"]`);
+                button.classList.add('answered');
+                answeredCount++;
+            }
+        });
+        document.getElementById('status-indicator').textContent = `${answeredCount} dikerjakan`;
+    });
+
+    // Simpan jawaban ke localStorage saat input berubah
+    document.querySelectorAll('.form-check-input').forEach(input => {
+        input.addEventListener('change', function() {
+            const questionId = this.name.match(/\d+/)[0];
+            const button = document.querySelector(`.question-button[data-id="${questionId}"]`);
+
+            let answers = JSON.parse(localStorage.getItem('answers')) || {};
+            answers[questionId] = this.value;
+            localStorage.setItem('answers', JSON.stringify(answers));
+
+            if (!button.classList.contains('answered')) {
+                button.classList.add('answered');
+                answeredCount++;
+                document.getElementById('status-indicator').textContent = `${answeredCount} dikerjakan`;
+            }
+        });
+    });
+
+   
+</script>
+<script>
+    // Ketika jawaban dipilih
+    $('.option-input').on('change', function() {
+        var soalId = $(this).data('soal-id'); // ID soal saat ini
+        var jawaban = $(this).val(); // Nilai jawaban
+
+        $.ajax({
+            url: '/save-jawaban', // Rute untuk menyimpan jawaban
+            method: 'POST',
+            data: {
+                soal_id: soalId,
+                jawaban: jawaban,
+                _token: '{{ csrf_token() }}' // Token CSRF
+            },
+            success: function(response) {
+                // Berikan feedback atau update UI jika diperlukan
+                $('#status-indicator').text(response.totalAnswered + ' dikerjakan dari ' + response
+                    .totalQuestions + ' soal');
+            },
+            error: function(xhr) {
+                // Tangani error jika gagal menyimpan jawaban
+                alert('Gagal menyimpan jawaban. Silakan coba lagi.');
+            }
+        });
+    });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const radioButtons = document.querySelectorAll('input[type="radio"]');
+        const answeredCount = document.getElementById('answered-count');
+        const totalQuestions = {{ $allSoals->count() }};
+        let answeredQuestions = 0;
+
+        // Load existing answers from localStorage on page load
+        const savedAnswers = JSON.parse(localStorage.getItem('answeredQuestions')) || {};
+
+        // Set button color for already answered questions
+        function updateAnsweredQuestions() {
+            answeredQuestions = 0;
+            for (let soalId in savedAnswers) {
+                const questionButton = document.getElementById('question-button-' + soalId);
+                if (questionButton) {
+                    questionButton.classList.remove('btn-outline-primary');
+                    questionButton.classList.add('btn-primary');
+                    answeredQuestions++;
+                }
+            }
+            answeredCount.textContent = answeredQuestions;
+        }
+
+        // Run update on page load
+        updateAnsweredQuestions();
+
+        // Add event listener to each radio button
+        radioButtons.forEach(radio => {
+            radio.addEventListener('change', function() {
+                const soalId = this.name.match(/\d+/)[0];
+                const questionButton = document.getElementById('question-button-' + soalId);
+
+                // If an answer is selected, mark the question as answered
+                if (this.checked) {
+                    // Change button color to blue to mark as answered
+                    questionButton.classList.remove('btn-outline-primary');
+                    questionButton.classList.add('btn-primary');
+
+                    // Save the answer in localStorage
+                    savedAnswers[soalId] = true;
+                    localStorage.setItem('answeredQuestions', JSON.stringify(savedAnswers));
+
+                    // Update the answered question count
+                    if (!questionButton.classList.contains('btn-primary')) {
+                        answeredQuestions++;
+                        answeredCount.textContent = answeredQuestions;
+                    }
+                }
+            });
+        });
+
+        // When navigating between questions, update button colors
+        const questionButtons = document.querySelectorAll('.question-button');
+        questionButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                updateAnsweredQuestions();
+            });
+        });
+    });
+</script>
 
 <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
     integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous">

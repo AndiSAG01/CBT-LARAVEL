@@ -27,7 +27,7 @@
                 </div>
                 <div class="form-group">
                     <label for="soal_ujian">Soal Ujian</label>
-                    <textarea name="soal_ujian" id="editor1" cols="30" rows="10">{{ $soal->soal_ujian }}</textarea>
+                    <textarea name="soal_ujian" id="editor" cols="30" rows="10">{{ $soal->soal_ujian }}</textarea>
                     @error('soal_ujian')
                         <span class="text-danger">{{ $message }}</span>
                     @enderror
@@ -92,4 +92,5 @@
 
         </x-pages.card>
     </x-pages.container>
+    @include('admin.Soal.ckeditor')
 </x-admin>

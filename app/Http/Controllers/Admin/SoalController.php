@@ -15,6 +15,7 @@ class SoalController extends Controller
     {
         $user = Auth::user();
         $soals =Soal::where('user_id', $user->id)->paginate(10);
+        
         return view('admin.soal.index', compact('soals'));
     }
 
@@ -24,6 +25,7 @@ class SoalController extends Controller
         $kategori = Kategori::where('user_id', $user->id)->get();
         $user = Auth::id();
         return view('admin.soal.create', compact('kategori','user'));
+
     }
 
     public function store(RequestSoal $request)
