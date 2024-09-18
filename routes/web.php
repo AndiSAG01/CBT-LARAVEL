@@ -81,6 +81,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/kelola-ujian', [UjianController::class, 'index'])->name('ujian.index');
     Route::get('/kelola-ujian/create', [UjianController::class, 'create'])->name('ujian.create');
+    Route::get('/kelola-ujian/Detail/{id}',[UjianController::class, 'show'])->name('ujian.show');
     Route::post('/kelola-ujian/store', [UjianController::class, 'store'])->name('ujian.store');
     Route::get('kelola-ujian/edit/{ujian}', [UjianController::class, 'edit'])->name('ujian.edit');
     Route::put('kelola-ujian/update/{ujian}', [UjianController::class, 'update'])->name('ujian.update');

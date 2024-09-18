@@ -23,7 +23,8 @@ class PagesController extends Controller
             ->where('status', 'Selesai')
             ->get()
             ->groupBy(function ($item) {
-                return $item->ujian->jam_ujian; // Mengelompokkan berdasarkan jam ujian
+                // Pastikan $item->ujian tidak null
+                return $item->ujian ? $item->ujian->jam_ujian : 'Ujian Tidak Ditemukan'; // Atau berikan nilai default
             });
     
         // Mengubah hasil ke bentuk paginasi manual
@@ -42,5 +43,6 @@ class PagesController extends Controller
     
         return view('user.Hasil.index', compact('hasil'));
     }
+    
     
 }

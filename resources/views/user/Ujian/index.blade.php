@@ -144,35 +144,27 @@
     <!-- Main Container -->
     <x-pages.container>
         <div class="row">
-            <!-- Left Sidebar with Timer and Answered Questions -->
             <div class="col-sm-4 mb-4">
-                <!-- Countdown Timer Card -->
                 <x-pages.card>
                     <h5 class="text-center">Waktu Ujian</h5>
                     <div id="countdown" class="countdown-timer text-center h4"></div>
                 </x-pages.card>
 
-                <!-- Answered Questions Card -->
                 <div class="card mt-4">
                     <div class="question-navigation">
                         <h5 class="card-header">Soal yang Sudah Dijawab</h5>
                         <div class="card-body">
-                            @if (count($answeredSoals) > 0)
-                                <div id="answered-questions">
-                                    <span>Nomor soal yang sudah dijawab:</span>
-                                    <div class="answered-question-buttons mt-3">
-                                        @foreach ($allSoals as $index => $soal)
-                                            @if (in_array($soal->id, $answeredSoals))
-                                                <button class="btn btn-primary m-1">
-                                                    {{ $index + 1 }}
-                                                </button>
-                                            @endif
-                                        @endforeach
-                                    </div>
+                            <div id="answered-questions">
+                                <span>Nomor soal yang sudah dijawab:</span>
+                                <div class="answered-question-buttons mt-3">
+                                    @foreach ($soals as $index => $soal)
+                                    <button class="btn btn-outline-primary m-1 question-btn" id="question-btn-{{ $soal->id }}"
+                                        data-question-id="{{ $soal->id }}">
+                                        {{ $index + 1 }}
+                                    </button>
+                                    @endforeach
                                 </div>
-                            @else
-                                <p>Belum ada soal yang dijawab.</p>
-                            @endif
+                            </div>
                         </div>                        
                     </div>
                 </div>
@@ -181,50 +173,49 @@
             <!-- Main Content Area with Questions -->
             <div class="col-sm-8">
                 <x-pages.card>
-                    <form id="examForm" action="{{ route('exam.store') }}" method="POST"
-                        enctype="multipart/form-data">
+                    <form id="examForm" action="{{ route('exam.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <input type="hidden" name="ujian_id" value="{{ $ujian->id }}">
                         <input type="hidden" id="duration" value="{{ $ujian->durasi }}">
-
+                
                         <!-- Loop through each question -->
-                        @foreach ($soals as $soal)
-                            @php
-                                // Calculate the correct question number considering pagination
-                                $questionNumber = ($soals->currentPage() - 1) * $soals->perPage() + $loop->iteration;
-                            @endphp
-
-                            <div class="mb-4">
-                                <!-- Question Display -->
-                                <div class="soal-container mb-2">
-                                    <span class="soal-number">{{ $questionNumber }}.</span>
-                                    <div class="soal-content">{!! $soal->soal_ujian !!}</div>
+                        <div id="questionContainer">
+                            @foreach ($soals as $index => $soal)
+                                @php
+                                    $questionNumber = $index + 1;
+                                @endphp
+                
+                                <div class="soal-slide" style="display: {{ $index == 0 ? 'block' : 'none' }};" data-index="{{ $index }}">
+                                    <!-- Question Display -->
+                                    <div class="soal-container mb-2">
+                                        <span class="soal-number">{{ $questionNumber }}.</span>
+                                        <div class="soal-content">{!! $soal->soal_ujian !!}</div>
+                                    </div>
+                
+                                    <!-- Answer Options -->
+                                    @foreach (['A', 'B', 'C', 'D', 'E'] as $option)
+                                        @if (!empty($soal->{'kunci_' . $option}))
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="answers[{{ $soal->id }}]"
+                                                    value="{{ $option }}" 
+                                                    {{ isset($answeredSoals[$soal->id]) && $answeredSoals[$soal->id] == $option ? 'checked' : '' }}>
+                                                <label class="form-check-label">{!! $soal->{'kunci_' . $option} !!}</label>
+                                            </div>
+                                        @endif
+                                    @endforeach
                                 </div>
-
-                                <!-- Answer Options -->
-                                @foreach (['A', 'B', 'C', 'D', 'E'] as $option)
-                                    @if (!empty($soal->{'kunci_' . $option}))
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio"
-                                                name="answers[{{ $soal->id }}]" value="{{ $option }}"
-                                                {{ isset($answeredSoals[$soal->id]) && $answeredSoals[$soal->id] == $option ? 'checked' : '' }}>
-                                            <label class="form-check-label">{!! $soal->{'kunci_' . $option} !!}</label>
-                                        </div>
-                                    @endif
-                                @endforeach
-                            </div>
-                        @endforeach
-
-                        <!-- Pagination Links -->
-                        <div class="mt-4">
-                            {{ $soals->links('pagination::bootstrap-4') }}
+                            @endforeach
                         </div>
-
+                
+                        <!-- Navigation buttons -->
+                        <div class="mt-4">
+                            <button type="button" class="btn btn-secondary" id="prevBtn" onclick="prevQuestion()" disabled>Previous</button>
+                            <button type="button" class="btn btn-secondary" id="nextBtn" onclick="nextQuestion()">Next</button>
+                        </div>
+                
                         <!-- Submit Button -->
-                        <button type="submit" class="btn btn-primary mt-3"
-                            onclick="return confirm('Apakah jawaban Anda sudah terisi semua?')">
-                            Submit
-                        </button>
+                        <button type="submit" class="btn btn-primary mt-3" 
+                            onclick="return confirm('Apakah jawaban Anda sudah terisi semua?')">Submit</button>
                     </form>
                 </x-pages.card>
             </div>
@@ -232,88 +223,94 @@
     </x-pages.container>
 
 </body>
+<script>
+    let currentQuestionIndex = 0;
+    const totalQuestions = {{ count($soals) }};
+
+    function showQuestion(index) {
+        const slides = document.querySelectorAll('.soal-slide');
+        slides.forEach((slide, idx) => {
+            slide.style.display = (idx === index) ? 'block' : 'none';
+        });
+
+        document.getElementById('prevBtn').disabled = (index === 0);
+        document.getElementById('nextBtn').disabled = (index === totalQuestions - 1);
+    }
+
+    function nextQuestion() {
+        if (currentQuestionIndex < totalQuestions - 1) {
+            currentQuestionIndex++;
+            showQuestion(currentQuestionIndex);
+        }
+    }
+
+    function prevQuestion() {
+        if (currentQuestionIndex > 0) {
+            currentQuestionIndex--;
+            showQuestion(currentQuestionIndex);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        showQuestion(currentQuestionIndex);
+    });
+</script>
 
 <script>
     // Durasi ujian dalam menit setelah dikurangi keterlambatan
     const examDurationMinutes = @json($durasiUjian); // Durasi yang dikirim dari controller
 
-    // Dapatkan waktu sekarang
-    const currentTime = new Date().getTime();
+    // Debugging: Cek nilai yang diterima dari backend
+    console.log('Durasi Ujian dari Backend:', examDurationMinutes);
 
-    // Hitung waktu akhir ujian berdasarkan durasi yang tersisa
-    const examEndTime = currentTime + examDurationMinutes * 60 * 1000; // durasi dalam milidetik
+    // Cek apakah examDurationMinutes adalah nilai yang valid
+    if (examDurationMinutes && examDurationMinutes > 0) {
+        // Dapatkan waktu sekarang dalam milidetik
+        const currentTime = new Date().getTime();
 
-    function updateCountdown() {
-        const now = new Date().getTime();
-        const remainingTime = examEndTime - now;
+        // Hitung waktu akhir ujian berdasarkan durasi yang tersisa
+        const examEndTime = currentTime + (examDurationMinutes * 60 * 1000); // Konversi durasi ke milidetik
 
-        // Jika waktu habis, submit form otomatis
-        if (remainingTime <= 0) {
-            document.getElementById('countdown').innerText = 'Waktu Habis';
-            
-            // Submit form otomatis
-            document.getElementById('examForm').submit();
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const remainingTime = examEndTime - now;
 
-            // Redirect ke halaman jadwal.index setelah submit
-            setTimeout(function(){
-                window.location.href = "{{ route('jadwal.index') }}";
-            }, 1000); // Delay 1 detik agar form selesai tersubmit sebelum redirect
+            // Jika waktu habis, submit form otomatis
+            if (remainingTime <= 0) {
+                document.getElementById('countdown').innerText = 'Waktu Habis';
 
-            return;
+                // Submit form otomatis
+                document.getElementById('examForm').submit();
+
+                // Redirect ke halaman jadwal.index setelah submit
+                setTimeout(function(){
+                    window.location.href = "{{ route('jadwal.index') }}";
+                }, 2000); // Delay 2 detik agar form selesai tersubmit sebelum redirect
+
+                // Hentikan update countdown
+                return;
+            }
+
+            // Hitung menit dan detik yang tersisa
+            const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
+
+            // Tampilkan waktu tersisa dalam format menit dan detik
+            document.getElementById('countdown').innerText = `${minutes}m ${seconds}s`;
+
+            // Update countdown setiap 1 detik
+            setTimeout(updateCountdown, 1000);
         }
 
-        // Hitung menit dan detik yang tersisa
-        const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
-
-        // Tampilkan waktu tersisa dalam format menit dan detik
-        document.getElementById('countdown').innerText = `${minutes}m ${seconds}s`;
-
-        // Update countdown setiap 1 detik
-        setTimeout(updateCountdown, 1000);
+        // Mulai countdown
+        updateCountdown();
+    } else {
+        // Jika durasi ujian tidak valid, tampilkan pesan
+        document.getElementById('countdown').innerText = 'Durasi ujian tidak valid';
     }
-
-    // Mulai countdown
-    updateCountdown();
 </script>
-<script>
-    let answeredCount = 0;
 
-    // Kembalikan jawaban dari localStorage saat halaman dimuat
-    window.addEventListener('load', () => {
-        let answers = JSON.parse(localStorage.getItem('answers')) || {};
-        document.querySelectorAll('.form-check-input').forEach(input => {
-            const questionId = input.name.match(/\d+/)[0];
-            if (answers[questionId] && input.value === answers[questionId]) {
-                input.checked = true;
-                const button = document.querySelector(`.question-button[data-id="${questionId}"]`);
-                button.classList.add('answered');
-                answeredCount++;
-            }
-        });
-        document.getElementById('status-indicator').textContent = `${answeredCount} dikerjakan`;
-    });
 
-    // Simpan jawaban ke localStorage saat input berubah
-    document.querySelectorAll('.form-check-input').forEach(input => {
-        input.addEventListener('change', function() {
-            const questionId = this.name.match(/\d+/)[0];
-            const button = document.querySelector(`.question-button[data-id="${questionId}"]`);
-
-            let answers = JSON.parse(localStorage.getItem('answers')) || {};
-            answers[questionId] = this.value;
-            localStorage.setItem('answers', JSON.stringify(answers));
-
-            if (!button.classList.contains('answered')) {
-                button.classList.add('answered');
-                answeredCount++;
-                document.getElementById('status-indicator').textContent = `${answeredCount} dikerjakan`;
-            }
-        });
-    });
-
-   
-</script>
 <script>
     // Ketika jawaban dipilih
     $('.option-input').on('change', function() {
@@ -340,67 +337,41 @@
         });
     });
 </script>
-
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const radioButtons = document.querySelectorAll('input[type="radio"]');
-        const answeredCount = document.getElementById('answered-count');
-        const totalQuestions = {{ $allSoals->count() }};
-        let answeredQuestions = 0;
-
-        // Load existing answers from localStorage on page load
-        const savedAnswers = JSON.parse(localStorage.getItem('answeredQuestions')) || {};
-
-        // Set button color for already answered questions
-        function updateAnsweredQuestions() {
-            answeredQuestions = 0;
-            for (let soalId in savedAnswers) {
-                const questionButton = document.getElementById('question-button-' + soalId);
-                if (questionButton) {
-                    questionButton.classList.remove('btn-outline-primary');
-                    questionButton.classList.add('btn-primary');
-                    answeredQuestions++;
-                }
-            }
-            answeredCount.textContent = answeredQuestions;
-        }
-
-        // Run update on page load
-        updateAnsweredQuestions();
-
-        // Add event listener to each radio button
-        radioButtons.forEach(radio => {
-            radio.addEventListener('change', function() {
-                const soalId = this.name.match(/\d+/)[0];
-                const questionButton = document.getElementById('question-button-' + soalId);
-
-                // If an answer is selected, mark the question as answered
-                if (this.checked) {
-                    // Change button color to blue to mark as answered
-                    questionButton.classList.remove('btn-outline-primary');
-                    questionButton.classList.add('btn-primary');
-
-                    // Save the answer in localStorage
-                    savedAnswers[soalId] = true;
-                    localStorage.setItem('answeredQuestions', JSON.stringify(savedAnswers));
-
-                    // Update the answered question count
-                    if (!questionButton.classList.contains('btn-primary')) {
-                        answeredQuestions++;
-                        answeredCount.textContent = answeredQuestions;
-                    }
-                }
-            });
-        });
-
-        // When navigating between questions, update button colors
-        const questionButtons = document.querySelectorAll('.question-button');
+    // Function to check if a question is answered
+    function checkAnswered() {
+        const questionButtons = document.querySelectorAll('.question-btn');
+        
         questionButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                updateAnsweredQuestions();
+            const questionId = button.getAttribute('data-question-id');
+            const radioButtons = document.querySelectorAll(`input[name="answers[${questionId}]"]`);
+
+            // Check if any radio button for the question is checked
+            let isAnswered = false;
+            radioButtons.forEach(radio => {
+                if (radio.checked) {
+                    isAnswered = true;
+                }
             });
+
+            // Change button background if answered
+            if (isAnswered) {
+                button.classList.remove('btn-outline-primary');
+                button.classList.add('btn-primary');
+            } else {
+                button.classList.remove('btn-primary');
+                button.classList.add('btn-outline-primary');
+            }
         });
+    }
+
+    // Run checkAnswered whenever an answer is selected
+    document.querySelectorAll('.form-check-input').forEach(input => {
+        input.addEventListener('change', checkAnswered);
     });
+
+    // Run check on page load
+    document.addEventListener('DOMContentLoaded', checkAnswered);
 </script>
 
 <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"

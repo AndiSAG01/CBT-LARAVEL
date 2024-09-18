@@ -1,15 +1,5 @@
 <x-admin>
     <x-pages.container>
-        <nav style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='%236c757d'/%3E%3C/svg%3E&#34;);"
-            aria-label="breadcrumb">
-            <ol class="breadcrumb bg-dark">
-                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
-                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Manajeman Soal</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Kelola Soal Ujian</li>
-            </ol>
-        </nav>
-
-        @include('admin.ujian.tabs')
         <x-pages.card>
             <div class="relative flex flex-col w-full h-full text-gray-700 bg-white shadow-md rounded-xl bg-clip-border">
                 <div class="relative mx-4 mt-4 overflow-hidden text-gray-700 bg-white rounded-none bg-clip-border">
@@ -19,16 +9,6 @@
                                 class="block font-sans text-xl antialiased font-semibold leading-snug tracking-normal text-blue-gray-900">
                                 Daftar Peserta Ujian <i class="fas fa-address-book"></i>
                             </h5>
-                        </div>
-                        <div class="flex flex-col gap-2 shrink-0 sm:flex-row">
-                            <a href="{{ route('ujian.create') }}">
-                                <button
-                                    class="flex select-none items-center gap-3 rounded-lg bg-gray-900 py-2 px-4 text-center align-middle font-sans text-xs font-bold uppercase text-white shadow-md shadow-gray-900/10 transition-all hover:shadow-lg hover:shadow-gray-900/20 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
-                                    type="button">
-                                    <i class="far fa-newspaper"></i>
-                                    Tambah Peserta Ujian
-                                </button>
-                            </a>
                         </div>
                     </div>
                     <div class="flex flex-col items-center justify-between gap-4 md:flex-row">
@@ -58,19 +38,10 @@
                     <thead>
                         <tr>
                             <x-Tables.th>
-                                Kelas <i class="fas fa-graduation-cap"></i>
+                                Nama Siswa <i class="fas fa-file-signature"></i>
                             </x-Tables.th>
                             <x-Tables.th>
-                                Nama Mata Pelajaran <i class="fas fa-book-reader"></i>
-                            </x-Tables.th>
-                            <x-Tables.th>
-                                Jenis Ujian <i class="fas fa-book-open"></i>
-                            </x-Tables.th>
-                            <x-Tables.th>
-                                Waktu Ujian <i class="fas fa-clock"></i>
-                            </x-Tables.th>
-                            <x-Tables.th>
-                                Durasi Ujian <i class="fas fa-stopwatch"></i>
+                                Status <i class="fas fa-stream"></i>
                             </x-Tables.th>
                             <th class="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">
                                 Action <i class="fas fa-cogs"></i>
@@ -78,31 +49,46 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($paginatedUjian as $item)
+                        @foreach ($ujian as $item)
                             <tr>
+                                <x-Tables.td>{{ $item->siswa->name }}</x-Tables.td>
                                 <x-Tables.td>
-                                    {{ $item['kelas'] }}
+                                    @php
+                                        $current_time = Carbon\Carbon::now();
+                                        $exam_time = Carbon\Carbon::parse($item->tanggal_ujian . ' ' . $item->jam_ujian);
+                                    @endphp
+                                    @if ($item->status == 'Selesai')
+                                        <span class="badge bg-success">Selesai</span>
+                                    @elseif ($current_time->lessThan($exam_time))
+                                        <span class="badge bg-warning text-white">Belum Dimulai</span>
+                                    @elseif ($current_time->greaterThanOrEqualTo($exam_time))
+                                        <span class="badge bg-secondary text-white">Belum Diselesaikan</span>
+                                    @endif
                                 </x-Tables.td>
-                                <x-Tables.td>
-                                    {{ $item['kategori'] }}
-                                </x-Tables.td>
-                                <x-Tables.td>
-                                    {{ $item['category'] }}
-                                </x-Tables.td>
-                                <x-Tables.td>
-                                    {{ $item['tanggal_ujian'] }} | {{ $item['jam_ujian'] }}
-                                </x-Tables.td>
-                                <x-Tables.td>
-                                    {{ $item['durasi'] }} Menit
-                                </x-Tables.td>
-                    
+                
                                 <td class="p-4 border-b border-blue-gray-50">
                                     <div class="d-flex align-items-center">
-                                        <!-- Tombol Detail -->
-                                        <a href="{{ route('ujian.show', $item['id']) }}"
-                                            class="btn btn-info rounded-sm ml-2">
-                                             <i class="fas fa-info-circle"></i> Detail
-                                         </a>                                          
+                                        @if ($item->status == 'Belum Dimulai')
+                                            <a href="{{ route('ujian.edit', $item->id) }}">
+                                                <button
+                                                    class="relative h-10 max-h-[40px] bg-primary w-10 max-w-[40px] select-none rounded-lg text-center align-middle font-sans text-xs font-medium uppercase text-gray-900 transition-all hover:bg-gray-900/10 active:bg-gray-900/20 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+                                                    type="button">
+                                                    <i class="fas fa-pen fa-sm"></i>
+                                                </button>
+                                            </a>
+                                            <form id="deleteForm{{ $item->id }}" style="margin-left: 2%;"
+                                                action="{{ route('ujian.delete', $item->id) }}" method="POST"
+                                                enctype="multipart/form-data">
+                                                @csrf
+                                                @method('delete')
+                                                <button type="button" class="btn btn-danger rounded-sm"
+                                                    onclick="confirmDelete({{ $item->id }})">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        @elseif ($item->status == 'Selesai')
+                                            <button class="btn btn-success" disabled>Selesai</button>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
@@ -110,23 +96,19 @@
                     </tbody>
                 </x-Tables.tabel>
                 
-                <!-- Pagination Links -->
-                {{ $paginatedUjian->links() }}
-                
-                
-                <div class="flex items-center justify-between p-4 border-t border-blue-gray-50">
+                {{-- <div class="flex items-center justify-between p-4 border-t border-blue-gray-50">
                     <p class="block font-sans text-sm antialiased font-normal leading-normal text-blue-gray-900">
-                        Page {{ $paginatedUjian->currentPage() }} of {{ $paginatedUjian->lastPage() }}
+                        Page {{ $ujian->currentPage() }} of {{ $ujian->lastPage() }}
                     </p>
                     <div class="flex gap-2">
-                        @if ($paginatedUjian->onFirstPage())
+                        @if ($ujian->onFirstPage())
                             <button
                                 class="select-none rounded-lg border border-gray-900 py-2 px-4 text-center align-middle font-sans text-xs font-bold uppercase text-gray-900 transition-all opacity-50 cursor-not-allowed"
                                 type="button" disabled>
                                 Previous
                             </button>
                         @else
-                            <a href="{{ $paginatedUjian->previousPageUrl() }}">
+                            <a href="{{ $ujian->previousPageUrl() }}">
                                 <button
                                     class="select-none rounded-lg border border-gray-900 py-2 px-4 text-center align-middle font-sans text-xs font-bold uppercase text-gray-900 transition-all hover:opacity-75 focus:ring focus:ring-gray-300 active:opacity-[0.85]"
                                     type="button">
@@ -135,8 +117,8 @@
                             </a>
                         @endif
 
-                        @if ($paginatedUjian->hasMorePages())
-                            <a href="{{ $paginatedUjian->nextPageUrl() }}">
+                        @if ($ujian->hasMorePages())
+                            <a href="{{ $ujian->nextPageUrl() }}">
                                 <button
                                     class="select-none rounded-lg border border-gray-900 py-2 px-4 text-center align-middle font-sans text-xs font-bold uppercase text-gray-900 transition-all hover:opacity-75 focus:ring focus:ring-gray-300 active:opacity-[0.85]"
                                     type="button">
@@ -151,7 +133,7 @@
                             </button>
                         @endif
                     </div>
-                </div>
+                </div> --}}
             </div>
         </x-pages.card>
     </x-pages.container>

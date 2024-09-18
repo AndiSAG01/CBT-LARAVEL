@@ -10,6 +10,8 @@ use App\Models\Ujian;
 use Illuminate\Http\Request;
 use App\Models\CategoryExam as ModelsCategoryExam;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
 
 class UjianController extends Controller
 {
@@ -19,8 +21,40 @@ class UjianController extends Controller
     public function index()
     {
         $user = Auth::id();
-        $ujian = Ujian::where('user_id',$user)->paginate(10);
-        return view('admin.ujian.index', compact('ujian'));
+        
+        // Retrieve all exams for the user
+        $ujian = Ujian::where('user_id', $user)->get();
+        
+        // Group by category and exam time
+        $groupedUjian = $ujian->groupBy(function($item) {
+            return $item->kategori->name . '|' . $item->jam_ujian;
+        })->map(function($group) {
+            // Return a single item with aggregated data
+            return [
+                'kelas' => $group->first()->kelas,
+                'kategori' => $group->first()->kategori->name,
+                'category' => $group->first()->category->name,
+                'tanggal_ujian' => $group->first()->tanggal_ujian,
+                'jam_ujian' => $group->first()->jam_ujian,
+                'durasi' => $group->first()->durasi,
+                'id' => $group->first()->id,  // Ensure you include the ID for detail links
+            ];
+        });
+    
+        // Get current page from request
+        $currentPage = Paginator::resolveCurrentPage();
+        $perPage = 10;
+        $currentItems = $groupedUjian->slice(($currentPage - 1) * $perPage, $perPage)->values();
+        
+        $paginatedUjian = new LengthAwarePaginator(
+            $currentItems,
+            $groupedUjian->count(),
+            $perPage,
+            $currentPage,
+            ['path' => Paginator::resolveCurrentPath()]
+        );
+    
+        return view('admin.ujian.index', compact('paginatedUjian'));
     }
 
     /**
@@ -34,6 +68,21 @@ class UjianController extends Controller
         $jenis_ujian  = ModelsCategoryExam::where('user_id',$user)->get();
         return view('admin.ujian.create', compact('siswa', 'kategori', 'jenis_ujian','user'));
     }
+
+    public function show($id)
+{
+    // Fetch the exam details by id
+    $exam = Ujian::findOrFail($id);
+
+    // Fetch students with the same exam schedule
+    $ujian = Ujian::where('tanggal_ujian', $exam->tanggal_ujian)
+                     ->where('jam_ujian', $exam->jam_ujian)
+                     ->where('kategori_id', $exam->kategori_id)
+                     ->get();
+                     
+    return view('admin.ujian.detail', compact('ujian'));
+}
+
 
     /**
      * Store a newly created resource in storage.
