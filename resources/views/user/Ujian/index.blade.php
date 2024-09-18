@@ -293,7 +293,6 @@
         });
         document.getElementById('status-indicator').textContent = `${answeredCount} dikerjakan`;
     });
-
     // Simpan jawaban ke localStorage saat input berubah
     document.querySelectorAll('.form-check-input').forEach(input => {
         input.addEventListener('change', function() {
