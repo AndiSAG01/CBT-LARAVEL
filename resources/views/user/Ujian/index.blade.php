@@ -290,11 +290,9 @@
                 // Hentikan update countdown
                 return;
             }
-
             // Hitung menit dan detik yang tersisa
             const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
-
             // Tampilkan waktu tersisa dalam format menit dan detik
             document.getElementById('countdown').innerText = `${minutes}m ${seconds}s`;
 
