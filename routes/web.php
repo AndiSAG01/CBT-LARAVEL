@@ -49,6 +49,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/soal/edit/{soal}', [SoalController::class, 'edit'])->name('soal.edit');
     Route::put('/soal/update/{soal}', [SoalController::class, 'update'])->name('soal.update');
     Route::delete('/soal/delete/{soal}', [SoalController::class, 'destroy'])->name('soal.destroy');
+    Route::post('/soal/{id}/toggle-publish', [SoalController::class, 'togglePublish'])->name('soal.togglePublish');
 
     Route::get('/siswa', [SiswaController::class, 'index'])->name('siswa.index');
     Route::get('/siswa/detail/{siswa}', [SiswaController::class, 'detail'])->name('siswa.detail');
@@ -60,6 +61,8 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('kelola-ujian/edit/{ujian}', [UjianController::class, 'edit'])->name('ujian.edit');
     Route::put('kelola-ujian/update/{ujian}', [UjianController::class, 'update'])->name('ujian.update');
     Route::delete('kelola-ujian/delete/{ujian}', [UjianController::class, 'destroy'])->name('ujian.delete');
+    Route::post('/get-siswa-by-class', [UjianController::class, 'getSiswaByClass'])->name('getSiswaByClass');
+
 
     Route::get('/admin/hasil-ujian', [DashboardController::class, 'hasil'])->name('ujian.hasil');
     Route::get('/Cetak-Hasil-Ujian', [DashboardController::class, 'cetaksemua'])->name('hasil.cetak');
@@ -82,6 +85,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/kelola-ujian', [UjianController::class, 'index'])->name('ujian.index');
     Route::get('/kelola-ujian/create', [UjianController::class, 'create'])->name('ujian.create');
     Route::post('/kelola-ujian/store', [UjianController::class, 'store'])->name('ujian.store');
+    Route::get('ujian/{kategori_id}/{jam_ujian}', [UjianController::class, 'show'])->name('ujian.show');
     Route::get('kelola-ujian/edit/{ujian}', [UjianController::class, 'edit'])->name('ujian.edit');
     Route::put('kelola-ujian/update/{ujian}', [UjianController::class, 'update'])->name('ujian.update');
     Route::delete('kelola-ujian/delete/{ujian}', [UjianController::class, 'destroy'])->name('ujian.delete');

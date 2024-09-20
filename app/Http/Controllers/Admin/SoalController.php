@@ -14,8 +14,8 @@ class SoalController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $soals =Soal::where('user_id', $user->id)->paginate(10);
-        
+        $soals = Soal::where('user_id', $user->id)->paginate(10);
+
         return view('admin.soal.index', compact('soals'));
     }
 
@@ -24,8 +24,7 @@ class SoalController extends Controller
         $user = Auth::user();
         $kategori = Kategori::where('user_id', $user->id)->get();
         $user = Auth::id();
-        return view('admin.soal.create', compact('kategori','user'));
-
+        return view('admin.soal.create', compact('kategori', 'user'));
     }
 
     public function store(RequestSoal $request)
@@ -47,10 +46,10 @@ class SoalController extends Controller
     {
         $kategori = Kategori::all();
         $user = Auth::id();
-        return view('admin.soal.edit', compact('soal','kategori','user'));
+        return view('admin.soal.edit', compact('soal', 'kategori', 'user'));
     }
 
-    public function update(RequestSoal $request , Soal $soal)
+    public function update(RequestSoal $request, Soal $soal)
     {
         // Validasi data input sesuai rules yang telah didefinisikan
         $validatedData = $request->validated();
@@ -59,7 +58,7 @@ class SoalController extends Controller
         $soal->update($validatedData);
 
         // Redirect ke halaman index dengan pesan sukses
-       
+
         return redirect()->route('soal.index')->with('success', 'Soal berhasil diubah');
     }
 
@@ -71,4 +70,15 @@ class SoalController extends Controller
         // Redirect ke halaman index dengan pesan sukses
         return redirect()->route('soal.index')->with('success', 'Soal berhasil dihapus');
     }
+
+    public function togglePublish(Request $request, $id)
+    {
+        $soal = Soal::findOrFail($id);
+        $soal->published = $request->published;
+        $soal->save();
+    
+        return response()->json(['message' => 'Publish status updated successfully']);
+    }
+    
+
 }

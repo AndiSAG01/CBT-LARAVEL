@@ -10,6 +10,7 @@ use App\Models\Ujian;
 use Illuminate\Http\Request;
 use App\Models\CategoryExam as ModelsCategoryExam;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class UjianController extends Controller
 {
@@ -19,9 +20,15 @@ class UjianController extends Controller
     public function index()
     {
         $user = Auth::id();
-        $ujian = Ujian::where('user_id',$user)->paginate(10);
+        // Group by category and exam time (jam_ujian), and count the number of exams
+        $ujian = Ujian::where('user_id', $user)
+            ->select('kategori_id', 'category_id', 'jam_ujian', 'tanggal_ujian', 'kelas', 'durasi', DB::raw('COUNT(*) as student_count'))
+            ->groupBy('kategori_id', 'category_id', 'jam_ujian', 'tanggal_ujian', 'kelas', 'durasi')
+            ->paginate(10);
+
         return view('admin.ujian.index', compact('ujian'));
     }
+
 
     /**
      * Show the form for creating a new resource.
@@ -31,8 +38,8 @@ class UjianController extends Controller
         $user = Auth::id();
         $siswa = Student::all();
         $kategori = Kategori::where('user_id', $user)->get();
-        $jenis_ujian  = ModelsCategoryExam::where('user_id',$user)->get();
-        return view('admin.ujian.create', compact('siswa', 'kategori', 'jenis_ujian','user'));
+        $jenis_ujian  = ModelsCategoryExam::where('user_id', $user)->get();
+        return view('admin.ujian.create', compact('siswa', 'kategori', 'jenis_ujian', 'user'));
     }
 
     /**
@@ -57,6 +64,17 @@ class UjianController extends Controller
         return redirect()->route('ujian.index')->with('success', 'Data ujian berhasil ditambahkan');
     }
 
+    public function show($kategori_id, $jam_ujian)
+    {
+        // Find all students with the same category and exam time
+        $students = Ujian::where('kategori_id', $kategori_id)
+            ->where('jam_ujian', $jam_ujian)
+            ->paginate(10);
+
+        return view('admin.ujian.detail', compact('students'));
+    }
+
+
     /**
      * Show the form for editing the specified resource.
      */
@@ -66,7 +84,7 @@ class UjianController extends Controller
         $siswa = Student::all();
         $kategori =  Kategori::all();
         $jenis_ujian  = ModelsCategoryExam::all();
-        return view('admin.ujian.edit', compact('ujian', 'siswa', 'kategori', 'jenis_ujian','user'));
+        return view('admin.ujian.edit', compact('ujian', 'siswa', 'kategori', 'jenis_ujian', 'user'));
     }
 
     /**
@@ -76,13 +94,13 @@ class UjianController extends Controller
     {
         // Validate the incoming request data
         $validated = $request->validated();
-    
+
         // Delete existing ujian records related to this ujian instance
         $ujian->where('kelas', $ujian->kelas)
-              ->where('tanggal_ujian', $ujian->tanggal_ujian)
-              ->where('jam_ujian', $ujian->jam_ujian)
-              ->delete();
-    
+            ->where('tanggal_ujian', $ujian->tanggal_ujian)
+            ->where('jam_ujian', $ujian->jam_ujian)
+            ->delete();
+
         // Re-create the ujian records for each selected siswa
         foreach ($request->siswa_id as $siswaId) {
             Ujian::create([
@@ -97,10 +115,10 @@ class UjianController extends Controller
                 'status' => 'Belum Dimulai'
             ]);
         }
-    
+
         return redirect()->route('ujian.index')->with('success', 'Data ujian berhasil diperbarui');
     }
-    
+
 
 
     /**
@@ -110,5 +128,13 @@ class UjianController extends Controller
     {
         $ujian->delete();
         return redirect()->route('ujian.index')->with('success', 'Data ujian berhasil dihapus');
+    }
+
+    public function getSiswaByClass(Request $request)
+    {
+        $kelas = $request->input('kelas');
+        // Fetch students based on the selected class
+        $siswa = Student::where('class', $kelas)->get();
+        return response()->json($siswa);
     }
 }

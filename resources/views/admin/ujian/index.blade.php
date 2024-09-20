@@ -58,9 +58,6 @@
                     <thead>
                         <tr>
                             <x-Tables.th>
-                                Nama Siswa <i class="fas fa-file-signature"></i>
-                            </x-Tables.th>
-                            <x-Tables.th>
                                 Kelas <i class="fas fa-graduation-cap"></i>
                             </x-Tables.th>
                             <x-Tables.th>
@@ -75,9 +72,6 @@
                             <x-Tables.th>
                                 Durasi Ujian <i class="fas fa-stopwatch"></i>
                             </x-Tables.th>
-                            <x-Tables.th>
-                                Status <i class="fas fa-stream"></i>
-                            </x-Tables.th>
                             <th class="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">
                                 Action <i class="fas fa-cogs"></i>
                             </th>
@@ -86,7 +80,6 @@
                     <tbody>
                         @foreach ($ujian as $item)
                             <tr>
-                                <x-Tables.td>{{ $item->siswa->name }}</x-Tables.td>
                                 <x-Tables.td>
                                     {{ $item->kelas }}
                                 </x-Tables.td>
@@ -102,51 +95,21 @@
                                 <x-Tables.td>
                                     {{ $item->durasi }} Menit
                                 </x-Tables.td>
-                                <x-Tables.td>
-                                    @php
-                                        $current_time = Carbon\Carbon::now();
-                                        $exam_time = Carbon\Carbon::parse(
-                                            $item->tanggal_ujian . ' ' . $item->jam_ujian,
-                                        );
-                                    @endphp
-                                    @if ($item->status == 'Selesai')
-                                        <span class="badge bg-success">Selesai</span>
-                                    @elseif ($current_time->lessThan($exam_time))
-                                        <span class="badge bg-warning text-white">Belum Dimulai</span>
-                                    @elseif ($current_time->greaterThanOrEqualTo($exam_time))
-                                        <span class="badge bg-secondary text-white">Belum Diselesaikan</span>
-                                    @endif
-                                </x-Tables.td>
-
                                 <td class="p-4 border-b border-blue-gray-50">
-                                    @if ($item->status == 'Belum Dimulai')
-                                        <div class="d-flex align-items-center">
-                                            <a href="{{ route('ujian.edit', $item->id) }}">
-                                                <button
-                                                    class="relative h-10 max-h-[40px] bg-primary w-10 max-w-[40px] select-none rounded-lg text-center align-middle font-sans text-xs font-medium uppercase text-gray-900 transition-all hover:bg-gray-900/10 active:bg-gray-900/20 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
-                                                    type="button">
-                                                    <i class="fas fa-pen fa-sm"></i>
-                                                </button>
-                                            </a>
-                                            <form id="deleteForm{{ $item->id }}" style="margin-left: 2%;"
-                                                action="{{ route('ujian.delete', $item->id) }}" method="POST"
-                                                enctype="multipart/form-data">
-                                                @csrf
-                                                @method('delete')
-                                                <button type="button" class="btn btn-danger rounded-sm"
-                                                    onclick="confirmDelete({{ $item->id }})">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    @elseif ($item->status == 'Selesai')
-                                        <button class="btn btn-success" disabled>Selesai</button>
-                                    @endif
+                                    <a href="{{ route('ujian.show', ['kategori_id' => $item->kategori_id, 'jam_ujian' => $item->jam_ujian]) }}">
+                                        Detail ({{ $item->student_count }} Siswa/i)
+                                        <button
+                                            class="relative h-10 max-h-[40px] bg-primary w-10 max-w-[40px] select-none rounded-lg text-center align-middle font-sans text-xs font-medium uppercase text-gray-900 transition-all hover:bg-gray-900/10 active:bg-gray-900/20 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+                                            type="button">
+                                            <i class="fas fa-eye fa-sm"></i>
+                                        </button>
+                                    </a>
                                 </td>
                             </tr>
                         @endforeach
                     </tbody>
                 </x-Tables.tabel>
+                
                 <div class="flex items-center justify-between p-4 border-t border-blue-gray-50">
                     <p class="block font-sans text-sm antialiased font-normal leading-normal text-blue-gray-900">
                         Page {{ $ujian->currentPage() }} of {{ $ujian->lastPage() }}

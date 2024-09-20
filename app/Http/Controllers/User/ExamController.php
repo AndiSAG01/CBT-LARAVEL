@@ -22,34 +22,18 @@ class ExamController extends Controller
         $allSoals = Soal::where('kategori_id', $ujian->kategori_id)->get();
     
         // Paginate questions to display one at a time (paginate 1 question)
-        $soals = Soal::where('kategori_id', $ujian->kategori_id)->paginate(1);
+        $soals = Soal::where('kategori_id', $ujian->kategori_id)
+             ->where('published', true) // Only fetch published questions
+             ->get();
+
     
         // Retrieve student's answered questions from the ExamAnswer model
         $answeredSoals = ExamAnswer::where('student_id', $user->id)
                                    ->where('ujian_id', $ujian->id)
                                    ->pluck('answer', 'soal_id');
-    
-        // Waktu mulai ujian dari database
-        $waktuMulaiUjian = Carbon::parse($ujian->jam_ujian);
-    
-        // Waktu saat siswa membuka ujian (misalnya sekarang)
-        $waktuSekarang = Carbon::now();
-    
-        // Hitung selisih waktu keterlambatan (dalam menit)
-        $selisihWaktu = $waktuMulaiUjian->diffInMinutes($waktuSekarang, false);
-    
-        // Jika siswa terlambat (selisih positif), kurangi durasi ujian
-        if ($selisihWaktu > 0) {
-            $durasiUjian = $ujian->durasi - $selisihWaktu; // Durasi dikurangi waktu keterlambatan
-        } else {
-            $durasiUjian = $ujian->durasi; // Jika tidak terlambat, gunakan durasi penuh
-        }
-    
-        // Pastikan durasi tidak negatif
-        $durasiUjian = max($durasiUjian, 0); 
-    
+
         // Mengirimkan data ke view
-        return view('user.Ujian.index', compact('ujian', 'user', 'allSoals', 'soals', 'answeredSoals', 'durasiUjian', 'waktuMulaiUjian', 'waktuSekarang'));
+        return view('user.Ujian.index', compact('ujian', 'user', 'allSoals', 'soals', 'answeredSoals'));
     }
     
     

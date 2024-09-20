@@ -23,6 +23,7 @@ return new class extends Migration
             $table->longText('kunci_D');
             $table->longText('kunci_E');
             $table->string('kunci_jawaban');
+            $table->boolean('published')->default(0); // New column for publish status
             $table->timestamps();
         });
     }

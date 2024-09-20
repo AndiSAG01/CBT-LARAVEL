@@ -13,7 +13,7 @@
                     <div class="col-sm-6">
                         <div class="form-group">
                             <label for="my-input">Kelas <span class="text-danger">*</span></label>
-                            <select name="kelas" class="form-control">
+                            <select name="kelas" class="form-control" id="kelas">
                                 <option value="">===Pilih Kelas===</option>
                                 <option value="TNI">TNI</option>
                                 <option value="Polri">Polri</option>
@@ -23,7 +23,8 @@
                             @enderror
                         </div>
                         <div class="form-group">
-                            <label for="" class="form-label">Tanggal Ujian <span class="text-danger">*</span></label>
+                            <label for="" class="form-label">Tanggal Ujian <span
+                                    class="text-danger">*</span></label>
                             <input type="date" name="tanggal_ujian" id="" class="form-control"
                                 placeholder="" aria-describedby="helpId" />
                             @error('tanggal_ujian')
@@ -31,7 +32,8 @@
                             @enderror
                         </div>
                         <div class="form-group">
-                            <label for="" class="form-label">Jam Ujian <span class="text-danger">*</span></label>
+                            <label for="" class="form-label">Jam Ujian <span
+                                    class="text-danger">*</span></label>
                             <input type="time" name="jam_ujian" id="" class="form-control" placeholder=""
                                 aria-describedby="helpId" />
                             @error('jam_ujian')
@@ -49,7 +51,8 @@
                             @enderror
                         </div>
                         <div class="form-group">
-                            <label for="" class="form-label">Jenis Ujian <span class="text-danger">*</span></label>
+                            <label for="" class="form-label">Jenis Ujian <span
+                                    class="text-danger">*</span></label>
                             <select name="category_id" class="form-control">
                                 <option value="">===Pilih Jenis Ujian===</option>
                                 @foreach ($jenis_ujian as $item)
@@ -61,7 +64,8 @@
                             @enderror
                         </div>
                         <div class="form-group">
-                            <label for="kategori_id" class="form-label">Mata Pelajaran <span class="text-danger">*</span></label>
+                            <label for="kategori_id" class="form-label">Mata Pelajaran <span
+                                    class="text-danger">*</span></label>
                             <select name="kategori_id" class="form-control">
                                 <option value="">===Pilih Jenis Ujian===</option>
                                 @foreach ($kategori as $item)
@@ -71,10 +75,10 @@
                             @error('kategori_id')
                                 <span class="text-danger">*Field Tidak Boleh Kosong</span>
                             @enderror
-                        </div>                        
+                        </div>
                     </div>
                 </div>
-               
+
                 <x-Tables.tabel>
                     <thead>
                         <tr>
@@ -90,7 +94,7 @@
                             <th class="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">Action</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="siswaTable">
                         @foreach ($siswa as $sw)
                             <tr>
                                 <td class="p-4 border-b border-blue-gray-50">
@@ -122,8 +126,8 @@
                             </tr>
                         @endforeach
                         @error('siswa_id')
-                        <span class="text-danger font-semibold">*Pilih Salah Satu Siswa</span>
-                    @enderror
+                            <span class="text-danger font-semibold">*Pilih Salah Satu Siswa</span>
+                        @enderror
                     </tbody>
                 </x-Tables.tabel>
                 <div class="row mt-4">
@@ -134,4 +138,60 @@
             </form>
         </x-pages.card>
     </x-pages.container>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Listen to the change event on the 'kelas' select dropdown
+            $('#kelas').change(function() {
+                let selectedClass = $(this).val();
+
+                // Check if a class is selected
+                if (selectedClass) {
+                    // Make an AJAX request to fetch students based on the selected class
+                    $.ajax({
+                        url: "{{ route('getSiswaByClass') }}",
+                        type: 'POST',
+                        data: {
+                            kelas: selectedClass,
+                            _token: "{{ csrf_token() }}" // Laravel CSRF token
+                        },
+                        success: function(response) {
+                            // Clear the previous student table rows
+                            $('#siswaTable').empty();
+
+                            // Iterate over the response and append rows for each student
+                            $.each(response, function(index, student) {
+                                let row = `
+                                <tr>
+                                    <td class="p-4 border-b border-blue-gray-50">
+                                        <div class="flex items-center gap-3">
+                                            <img src="{{ Storage::url('${student.image}') }}" alt="Student Image"
+                                                class="relative inline-block h-9 w-9 !rounded-full object-cover object-center" />
+                                            <div class="flex flex-col">
+                                                <p class="block font-sans text-sm antialiased font-normal leading-normal text-blue-gray-900">
+                                                    ${student.name}
+                                                </p>
+                                                <p class="block font-sans text-sm antialiased font-normal leading-normal text-blue-gray-900 opacity-70">
+                                                    ${student.email}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <x-Tables.td>${student.class}</x-Tables.td>
+                                    <x-Tables.td>${student.number_phone}</x-Tables.td>
+                                    <td class="p-4 border-b border-blue-gray-50">
+                                        <input type="checkbox" class="pilihSiswa" name="siswa_id[]" value="${student.id}">
+                                    </td>
+                                </tr>`;
+                                $('#siswaTable').append(row);
+                            });
+                        }
+                    });
+                } else {
+                    // Clear the table if no class is selected
+                    $('#siswaTable').empty();
+                }
+            });
+        });
+    </script>
 </x-admin>

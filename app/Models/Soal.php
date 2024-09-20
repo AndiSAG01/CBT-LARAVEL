@@ -23,7 +23,8 @@ class Soal extends Model
         'kunci_C',
         'kunci_D',
         'kunci_E',
-        'kunci_jawaban'
+        'kunci_jawaban',
+        'published'
     ];
 
     public function kategori():BelongsTo

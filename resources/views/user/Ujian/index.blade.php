@@ -152,28 +152,23 @@
                     <div id="countdown" class="countdown-timer text-center h4"></div>
                 </x-pages.card>
 
-                <!-- Answered Questions Card -->
                 <div class="card mt-4">
                     <div class="question-navigation">
                         <h5 class="card-header">Soal yang Sudah Dijawab</h5>
                         <div class="card-body">
-                            @if (count($answeredSoals) > 0)
-                                <div id="answered-questions">
-                                    <span>Nomor soal yang sudah dijawab:</span>
-                                    <div class="answered-question-buttons mt-3">
-                                        @foreach ($allSoals as $index => $soal)
-                                            @if (in_array($soal->id, $answeredSoals))
-                                                <button class="btn btn-primary m-1">
-                                                    {{ $index + 1 }}
-                                                </button>
-                                            @endif
-                                        @endforeach
-                                    </div>
+                            <div id="answered-questions">
+                                <span>Nomor soal yang sudah dijawab:</span>
+                                <div class="answered-question-buttons mt-3">
+                                    @foreach ($soals as $index => $soal)
+                                        <button class="btn btn-outline-primary m-1 question-btn"
+                                            id="question-btn-{{ $soal->id }}"
+                                            data-question-id="{{ $soal->id }}">
+                                            {{ $index + 1 }}
+                                        </button>
+                                    @endforeach
                                 </div>
-                            @else
-                                <p>Belum ada soal yang dijawab.</p>
-                            @endif
-                        </div>                        
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -187,44 +182,51 @@
                         <input type="hidden" name="ujian_id" value="{{ $ujian->id }}">
                         <input type="hidden" id="duration" value="{{ $ujian->durasi }}">
 
-                        <!-- Loop through each question -->
-                        @foreach ($soals as $soal)
-                            @php
-                                // Calculate the correct question number considering pagination
-                                $questionNumber = ($soals->currentPage() - 1) * $soals->perPage() + $loop->iteration;
-                            @endphp
-
-                            <div class="mb-4">
-                                <!-- Question Display -->
-                                <div class="soal-container mb-2">
-                                    <span class="soal-number">{{ $questionNumber }}.</span>
-                                    <div class="soal-content">{!! $soal->soal_ujian !!}</div>
-                                </div>
-
-                                <!-- Answer Options -->
-                                @foreach (['A', 'B', 'C', 'D', 'E'] as $option)
-                                    @if (!empty($soal->{'kunci_' . $option}))
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio"
-                                                name="answers[{{ $soal->id }}]" value="{{ $option }}"
-                                                {{ isset($answeredSoals[$soal->id]) && $answeredSoals[$soal->id] == $option ? 'checked' : '' }}>
-                                            <label class="form-check-label">{!! $soal->{'kunci_' . $option} !!}</label>
+                        <div id="questionContainer">
+                            @if ($soals->isNotEmpty()) <!-- Check if there are published questions -->
+                                @foreach ($soals as $index => $soal)
+                                    @php
+                                        $questionNumber = $index + 1;
+                                    @endphp
+                        
+                                    <div class="soal-slide" style="display: {{ $index == 0 ? 'block' : 'none' }};"
+                                         data-index="{{ $index }}">
+                                        <!-- Question Display -->
+                                        <div class="soal-container mb-2">
+                                            <span class="soal-number">{{ $questionNumber }}.</span>
+                                            <div class="soal-content">{!! $soal->soal_ujian !!}</div>
                                         </div>
-                                    @endif
+                        
+                                        <!-- Answer Options -->
+                                        @foreach (['A', 'B', 'C', 'D', 'E'] as $option)
+                                            @if (!empty($soal->{'kunci_' . $option}))
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio"
+                                                           name="answers[{{ $soal->id }}]" value="{{ $option }}"
+                                                           {{ isset($answeredSoals[$soal->id]) && $answeredSoals[$soal->id] == $option ? 'checked' : '' }}>
+                                                    <label class="form-check-label">{!! $soal->{'kunci_' . $option} !!}</label>
+                                                </div>
+                                            @endif
+                                        @endforeach
+                                    </div>
                                 @endforeach
-                            </div>
-                        @endforeach
-
-                        <!-- Pagination Links -->
-                        <div class="mt-4">
-                            {{ $soals->links('pagination::bootstrap-4') }}
+                        
+                                <!-- Navigation buttons -->
+                                <div class="mt-4">
+                                    <button type="button" class="btn btn-secondary" id="prevBtn" onclick="prevQuestion()"
+                                            disabled>Previous</button>
+                                    <button type="button" class="btn btn-secondary" id="nextBtn"
+                                            onclick="nextQuestion()">Next</button>
+                                </div>
+                            @else
+                                <div class="alert alert-warning">
+                                    Tidak ada soal yang dipublikasikan untuk ujian ini.
+                                </div>
+                            @endif
                         </div>
-
-                        <!-- Submit Button -->
+                        
                         <button type="submit" class="btn btn-primary mt-3"
-                            onclick="return confirm('Apakah jawaban Anda sudah terisi semua?')">
-                            Submit
-                        </button>
+                            onclick="return confirm('Apakah jawaban Anda sudah terisi semua?')">Submit</button>
                     </form>
                 </x-pages.card>
             </div>
@@ -232,87 +234,204 @@
     </x-pages.container>
 
 </body>
-
 <script>
-    // Durasi ujian dalam menit setelah dikurangi keterlambatan
-    const examDurationMinutes = @json($durasiUjian); // Durasi yang dikirim dari controller
+    let currentQuestionIndex = 0;
+    const totalQuestions = {{ count($soals) }};
 
-    // Dapatkan waktu sekarang
-    const currentTime = new Date().getTime();
+    function showQuestion(index) {
+        const slides = document.querySelectorAll('.soal-slide');
+        slides.forEach((slide, idx) => {
+            slide.style.display = (idx === index) ? 'block' : 'none';
+        });
 
-    // Hitung waktu akhir ujian berdasarkan durasi yang tersisa
-    const examEndTime = currentTime + examDurationMinutes * 60 * 1000; // durasi dalam milidetik
-
-    function updateCountdown() {
-        const now = new Date().getTime();
-        const remainingTime = examEndTime - now;
-
-        // Jika waktu habis, submit form otomatis
-        if (remainingTime <= 0) {
-            document.getElementById('countdown').innerText = 'Waktu Habis';
-            
-            // Submit form otomatis
-            document.getElementById('examForm').submit();
-
-            // Redirect ke halaman jadwal.index setelah submit
-            setTimeout(function(){
-                window.location.href = "{{ route('jadwal.index') }}";
-            }, 1000); // Delay 1 detik agar form selesai tersubmit sebelum redirect
-
-            return;
-        }
-
-        // Hitung menit dan detik yang tersisa
-        const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
-
-        // Tampilkan waktu tersisa dalam format menit dan detik
-        document.getElementById('countdown').innerText = `${minutes}m ${seconds}s`;
-
-        // Update countdown setiap 1 detik
-        setTimeout(updateCountdown, 1000);
+        document.getElementById('prevBtn').disabled = (index === 0);
+        document.getElementById('nextBtn').disabled = (index === totalQuestions - 1);
     }
 
-    // Mulai countdown
-    updateCountdown();
+    function nextQuestion() {
+        if (currentQuestionIndex < totalQuestions - 1) {
+            currentQuestionIndex++;
+            showQuestion(currentQuestionIndex);
+        }
+    }
+
+    function prevQuestion() {
+        if (currentQuestionIndex > 0) {
+            currentQuestionIndex--;
+            showQuestion(currentQuestionIndex);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        showQuestion(currentQuestionIndex);
+    });
 </script>
 <script>
-    let answeredCount = 0;
+    // Ensure the server-side variable is correctly passed as a numeric value
+    const examDurationMinutes = parseInt(@json($ujian->durasi), 10); // Duration in minutes from the controller
 
-    // Kembalikan jawaban dari localStorage saat halaman dimuat
-    window.addEventListener('load', () => {
-        let answers = JSON.parse(localStorage.getItem('answers')) || {};
+    if (isNaN(examDurationMinutes) || examDurationMinutes <= 0) {
+        console.error('Invalid exam duration:', examDurationMinutes);
+    } else {
+        const currentTime = new Date().getTime(); // Current time in milliseconds
+        let examEndTime = localStorage.getItem('examEndTime');
+
+        // If there's no stored end time, calculate it and store it
+        if (!examEndTime) {
+            examEndTime = currentTime + (examDurationMinutes * 60 * 1000); // Duration in milliseconds
+            localStorage.setItem('examEndTime', examEndTime);
+        } else {
+            examEndTime = parseInt(examEndTime, 10); // Parse stored end time
+        }
+
+        function updateCountdown() {
+            const now = new Date().getTime(); // Get current time
+            const remainingTime = examEndTime - now; // Calculate remaining time
+
+            // If time has expired, submit the form automatically
+            if (remainingTime <= 0) {
+                document.getElementById('countdown').innerText = 'Waktu Habis';
+
+                // Submit form automatically
+                document.getElementById('examForm').submit();
+
+                // Redirect to the schedule page after form submission
+                setTimeout(function() {
+                    window.location.href = "{{ route('jadwal.index') }}";
+                }, 1000); // Delay 1 second to ensure form submission
+
+                // Clear the stored end time
+                localStorage.removeItem('examEndTime');
+                return;
+            }
+
+            // Calculate minutes and seconds remaining
+            const minutes = Math.floor(remainingTime / (1000 * 60)); // Total minutes
+            const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000); // Remaining seconds
+
+            // Display the remaining time in minutes and seconds
+            document.getElementById('countdown').innerText = `${minutes}m ${seconds}s`;
+
+            // Update countdown every 1 second
+            setTimeout(updateCountdown, 1000);
+        }
+
+        // Start the countdown
+        updateCountdown();
+    }
+</script>
+
+
+
+<script>
+    // Function to restore answers from localStorage on page load, using `ujian_id`
+    function restoreAnswers() {
+        const ujianId = document.querySelector('input[name="ujian_id"]').value;
+        let answers = JSON.parse(localStorage.getItem(`answers_${ujianId}`)) || {}; // Use ujian_id in key
+
         document.querySelectorAll('.form-check-input').forEach(input => {
-            const questionId = input.name.match(/\d+/)[0];
+            const questionId = input.name.match(/\d+/)[0]; // Extract the question ID from the input name
+
+            // Check if the answer exists in localStorage for this question
             if (answers[questionId] && input.value === answers[questionId]) {
-                input.checked = true;
-                const button = document.querySelector(`.question-button[data-id="${questionId}"]`);
-                button.classList.add('answered');
-                answeredCount++;
+                input.checked = true; // Check the saved answer
+                const button = document.querySelector(`.question-btn[data-question-id="${questionId}"]`);
+                if (button) {
+                    button.classList.remove('btn-outline-primary');
+                    button.classList.add('btn-primary');
+                }
             }
         });
-        document.getElementById('status-indicator').textContent = `${answeredCount} dikerjakan`;
+    }
+
+    // Function to save answers to localStorage when a user selects an option, using `ujian_id`
+    function saveAnswer(input) {
+        const ujianId = document.querySelector('input[name="ujian_id"]').value; // Get the current ujian_id
+        let answers = JSON.parse(localStorage.getItem(`answers_${ujianId}`)) || {}; // Use ujian_id in key
+        const questionId = input.name.match(/\d+/)[0]; // Extract question ID
+        answers[questionId] = input.value; // Store the selected answer
+        localStorage.setItem(`answers_${ujianId}`, JSON.stringify(
+        answers)); // Save answers to localStorage with ujian_id
+    }
+
+    // Function to clear previous answers when a new `ujian_id` is detected
+    function clearPreviousAnswers() {
+        const currentUjianId = document.querySelector('input[name="ujian_id"]').value;
+        const storedUjianId = localStorage.getItem('current_ujian_id');
+
+        if (storedUjianId && storedUjianId !== currentUjianId) {
+            // Clear previous answers if the `ujian_id` has changed
+            localStorage.removeItem(`answers_${storedUjianId}`);
+        }
+
+        // Update the current `ujian_id` in localStorage
+        localStorage.setItem('current_ujian_id', currentUjianId);
+    }
+
+    // Function to update the button styles based on answered questions
+    function checkAnswered() {
+        const questionButtons = document.querySelectorAll('.question-btn');
+
+        questionButtons.forEach(button => {
+            const questionId = button.getAttribute('data-question-id');
+            const radioButtons = document.querySelectorAll(`input[name="answers[${questionId}]"]`);
+
+            // Check if any radio button for the question is checked
+            let isAnswered = false;
+            radioButtons.forEach(radio => {
+                if (radio.checked) {
+                    isAnswered = true;
+                }
+            });
+
+            // Change button background if answered and save to Local Storage
+            if (isAnswered) {
+                button.classList.remove('btn-outline-primary');
+                button.classList.add('btn-primary');
+                localStorage.setItem(`answered_${questionId}`, true); // Save answered state to localStorage
+            } else {
+                button.classList.remove('btn-primary');
+                button.classList.add('btn-outline-primary');
+                localStorage.removeItem(`answered_${questionId}`); // Remove answered state from localStorage
+            }
+        });
+    }
+
+    // Function to restore answered questions from Local Storage on page load
+    function restoreAnsweredStatus() {
+        const questionButtons = document.querySelectorAll('.question-btn');
+
+        questionButtons.forEach(button => {
+            const questionId = button.getAttribute('data-question-id');
+
+            // Check Local Storage to restore button state
+            if (localStorage.getItem(`answered_${questionId}`)) {
+                button.classList.remove('btn-outline-primary');
+                button.classList.add('btn-primary');
+            } else {
+                button.classList.remove('btn-primary');
+                button.classList.add('btn-outline-primary');
+            }
+        });
+    }
+
+    // On page load, clear previous answers if `ujian_id` changes and restore current answers
+    document.addEventListener('DOMContentLoaded', () => {
+        clearPreviousAnswers(); // Clear previous answers if a new exam is started
+        restoreAnswers(); // Restore saved answers for the current exam
+        restoreAnsweredStatus(); // Restore answered status (button colors)
     });
-    // Simpan jawaban ke localStorage saat input berubah
+
+    // Attach event listeners to form-check-inputs to detect changes and update button states
     document.querySelectorAll('.form-check-input').forEach(input => {
         input.addEventListener('change', function() {
-            const questionId = this.name.match(/\d+/)[0];
-            const button = document.querySelector(`.question-button[data-id="${questionId}"]`);
-
-            let answers = JSON.parse(localStorage.getItem('answers')) || {};
-            answers[questionId] = this.value;
-            localStorage.setItem('answers', JSON.stringify(answers));
-
-            if (!button.classList.contains('answered')) {
-                button.classList.add('answered');
-                answeredCount++;
-                document.getElementById('status-indicator').textContent = `${answeredCount} dikerjakan`;
-            }
+            saveAnswer(this); // Save the answer when it changes
+            checkAnswered(); // Update the button styles based on answered questions
         });
     });
-
-   
 </script>
+
+
 <script>
     // Ketika jawaban dipilih
     $('.option-input').on('change', function() {
@@ -339,66 +458,67 @@
         });
     });
 </script>
-
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const radioButtons = document.querySelectorAll('input[type="radio"]');
-        const answeredCount = document.getElementById('answered-count');
-        const totalQuestions = {{ $allSoals->count() }};
-        let answeredQuestions = 0;
+    // Function to check if a question is answered and update the button state
+    function checkAnswered() {
+        const questionButtons = document.querySelectorAll('.question-btn');
 
-        // Load existing answers from localStorage on page load
-        const savedAnswers = JSON.parse(localStorage.getItem('answeredQuestions')) || {};
-
-        // Set button color for already answered questions
-        function updateAnsweredQuestions() {
-            answeredQuestions = 0;
-            for (let soalId in savedAnswers) {
-                const questionButton = document.getElementById('question-button-' + soalId);
-                if (questionButton) {
-                    questionButton.classList.remove('btn-outline-primary');
-                    questionButton.classList.add('btn-primary');
-                    answeredQuestions++;
-                }
-            }
-            answeredCount.textContent = answeredQuestions;
-        }
-
-        // Run update on page load
-        updateAnsweredQuestions();
-
-        // Add event listener to each radio button
-        radioButtons.forEach(radio => {
-            radio.addEventListener('change', function() {
-                const soalId = this.name.match(/\d+/)[0];
-                const questionButton = document.getElementById('question-button-' + soalId);
-
-                // If an answer is selected, mark the question as answered
-                if (this.checked) {
-                    // Change button color to blue to mark as answered
-                    questionButton.classList.remove('btn-outline-primary');
-                    questionButton.classList.add('btn-primary');
-
-                    // Save the answer in localStorage
-                    savedAnswers[soalId] = true;
-                    localStorage.setItem('answeredQuestions', JSON.stringify(savedAnswers));
-
-                    // Update the answered question count
-                    if (!questionButton.classList.contains('btn-primary')) {
-                        answeredQuestions++;
-                        answeredCount.textContent = answeredQuestions;
-                    }
-                }
-            });
-        });
-
-        // When navigating between questions, update button colors
-        const questionButtons = document.querySelectorAll('.question-button');
         questionButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                updateAnsweredQuestions();
+            const questionId = button.getAttribute('data-question-id');
+            const radioButtons = document.querySelectorAll(`input[name="answers[${questionId}]"]`);
+
+            // Check if any radio button for the question is checked
+            let isAnswered = false;
+            radioButtons.forEach(radio => {
+                if (radio.checked) {
+                    isAnswered = true;
+                }
             });
+
+            // Change button background if answered and save to Local Storage
+            if (isAnswered) {
+                button.classList.remove('btn-outline-primary');
+                button.classList.add('btn-primary');
+                localStorage.setItem(`answered_${questionId}`, true); // Save answered state to localStorage
+            } else {
+                button.classList.remove('btn-primary');
+                button.classList.add('btn-outline-primary');
+                localStorage.removeItem(`answered_${questionId}`); // Remove answered state from localStorage
+            }
         });
+    }
+
+    // Function to restore answered questions from Local Storage on page load
+    function restoreAnsweredStatus() {
+        const questionButtons = document.querySelectorAll('.question-btn');
+
+        questionButtons.forEach(button => {
+            const questionId = button.getAttribute('data-question-id');
+
+            // Check Local Storage to restore button state
+            if (localStorage.getItem(`answered_${questionId}`)) {
+                button.classList.remove('btn-outline-primary');
+                button.classList.add('btn-primary');
+            } else {
+                button.classList.remove('btn-primary');
+                button.classList.add('btn-outline-primary');
+            }
+        });
+    }
+
+    // Run restoreAnsweredStatus on page load to restore the state of answered questions
+    document.addEventListener('DOMContentLoaded', function() {
+        restoreAnsweredStatus(); // Restore answered status from localStorage
+    });
+
+    // Attach event listeners to form-check-inputs to detect changes and update button states
+    document.querySelectorAll('.form-check-input').forEach(input => {
+        input.addEventListener('change', checkAnswered); // Run checkAnswered when an answer is selected
+    });
+
+    // Optionally, call checkAnswered after restoring status to handle any remaining updates
+    document.addEventListener('DOMContentLoaded', function() {
+        checkAnswered(); // Ensure the button states are correct after page load
     });
 </script>
 

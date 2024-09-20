@@ -26,7 +26,7 @@
                                     class="flex select-none items-center gap-3 rounded-lg bg-gray-900 py-2 px-4 text-center align-middle text-xs font-bold uppercase text-white shadow-md shadow-gray-900/10 transition-all hover:shadow-lg hover:shadow-gray-900/20 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
                                     type="button">
                                     <i class="far fa-newspaper"></i>
-                                    Add Soal
+                                    Tambah Soal
                                 </button>
                             </a>
                         </div>
@@ -69,6 +69,9 @@
                             <x-Tables.th>
                                 Kunci Jawaban <i class="fas fa-key"></i>
                             </x-Tables.th>
+                            <x-Tables.th>
+                                Publish <i class="fas fa-upload"></i>
+                            </x-Tables.th>
                             <th class="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50"></th>
                         </tr>
                     </thead>
@@ -86,7 +89,7 @@
                                         <div class="mt-2">
                                             {!! $item->soal_ujian !!}
                                         </div>
-                                        
+
                                         <!-- Jawaban A -->
                                         <div class="flex-container mt-2">
                                             <div class="choice-letter">A.</div>
@@ -98,7 +101,7 @@
                                                 @endif
                                             </div>
                                         </div>
-                                
+
                                         <!-- Jawaban B -->
                                         <div class="flex-container">
                                             <div class="choice-letter">B.</div>
@@ -110,7 +113,7 @@
                                                 @endif
                                             </div>
                                         </div>
-                                
+
                                         <!-- Jawaban C -->
                                         <div class="flex-container">
                                             <div class="choice-letter">C.</div>
@@ -122,7 +125,7 @@
                                                 @endif
                                             </div>
                                         </div>
-                                
+
                                         <!-- Jawaban D -->
                                         <div class="flex-container">
                                             <div class="choice-letter">D.</div>
@@ -134,7 +137,6 @@
                                                 @endif
                                             </div>
                                         </div>
-                                
                                         <!-- Jawaban E (Jika ada) -->
                                         @if (!empty($item->kunci_E))
                                             <div class="flex-container">
@@ -150,25 +152,30 @@
                                         @endif
                                     </div>
                                 </td>
-                                
-                                
                                 <x-Tables.td>
                                     {{ $item->kunci_jawaban }}
                                 </x-Tables.td>
+                                <x-Tables.td>
+                                    <input type="checkbox" name="published" class="publish-toggle" data-id="{{ $item->id }}" {{ $item->published ? 'checked' : '' }}>
+                                </x-Tables.td>
                                 <td class="p-4 border-b border-blue-gray-50">
                                     <div class="d-flex align-items-center">
-                                        <a href="{{ route('soal.edit',$item->id) }}">
+                                        <a href="{{ route('soal.edit', $item->id) }}">
                                             <button
                                                 class="relative h-10 max-h-[40px] bg-primary w-10 max-w-[40px] select-none rounded-lg text-center align-middle text-xs font-medium uppercase text-gray-900 transition-all hover:bg-gray-900/10 active:bg-gray-900/20 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
                                                 type="button">
                                                 <i class="fas fa-pen fa-sm"></i>
                                             </button>
                                         </a>
-                                        <form id="deleteForm{{ $item->id }}" style="margin-left: 2%;" action="{{ route('soal.destroy', $item->id) }}" method="POST" enctype="multipart/form-data">
+                                        <form id="deleteForm{{ $item->id }}" style="margin-left: 2%;"
+                                            action="{{ route('soal.destroy', $item->id) }}" method="POST"
+                                            enctype="multipart/form-data">
                                             @csrf
                                             @method('delete')
-                                            <button type="button" class="btn btn-danger rounded-sm" onclick="confirmDelete({{ $item->id }})"><i class="fas fa-trash"></i></button>
-                                        </form>                                        
+                                            <button type="button" class="btn btn-danger rounded-sm"
+                                                onclick="confirmDelete({{ $item->id }})"><i
+                                                    class="fas fa-trash"></i></button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>
@@ -222,4 +229,31 @@
             </div>
         </x-pages.card>
     </x-pages.container>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('.publish-toggle').change(function () {
+            var soalId = $(this).data('id');
+            var isPublished = $(this).is(':checked') ? 1 : 0;
+
+            $.ajax({
+                url: '/soal/' + soalId + '/toggle-publish',
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    published: isPublished
+                },
+                success: function (response) {
+                    console.log(response.message);
+                    alert('Publish status Berhasil Diupdate');
+                },
+                error: function (xhr) {
+                    alert('An error occurred while updating the publish status');
+                    console.log(xhr.responseText);
+                }
+            });
+        });
+    });
+</script>
+
 </x-admin>

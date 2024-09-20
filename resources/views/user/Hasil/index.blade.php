@@ -20,6 +20,7 @@
                     <x-Tables.th>Benar</x-Tables.th>
                     <x-Tables.th>Salah</x-Tables.th>
                     <x-Tables.th>Nilai</x-Tables.th>
+                    <x-Tables.th>Action</x-Tables.th>
                 </thead>
                 <tbody>
                     @foreach ($hasil as $no => $group)
@@ -45,6 +46,10 @@
                             <x-Tables.td>{{ $correct }}</x-Tables.td>
                             <x-Tables.td>{{ $incorrect }}</x-Tables.td>
                             <x-Tables.td>{{ $nilai }}</x-Tables.td>
+                            <x-Tables.td>
+                                ini tombol melihat soal yang benar dan salah
+                            </x-Tables.td>
+
                         </tr>
                     @endforeach
                 </tbody>
