@@ -11,13 +11,23 @@ use Illuminate\Support\Facades\Auth;
 
 class SoalController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
-        $soals = Soal::where('user_id', $user->id)->paginate(10);
-
-        return view('admin.soal.index', compact('soals'));
+        $search = $request->input('search');
+    
+        // Query to fetch soals belonging to the authenticated user
+        $soals = Soal::where('user_id', $user->id)
+            ->when($search, function ($query, $search) {
+                // Search by 'kode', 'mata_pelajaran', or other relevant fields
+                return $query->where('code', 'LIKE', "%{$search}%")
+                             ->orWhere('soal_ujian', 'LIKE', "%{$search}%");
+            })
+            ->paginate(10); // Adjust pagination as needed
+    
+        return view('admin.soal.index', compact('soals', 'search'));
     }
+    
 
     public function create()
     {

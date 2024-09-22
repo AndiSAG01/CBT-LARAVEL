@@ -10,6 +10,7 @@ use ArielMejiaDev\LarapexCharts\LarapexChart;
 use Barryvdh\DomPDF\Facade\Pdf;  // <-- This is important!
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
@@ -60,11 +61,18 @@ class DashboardController extends Controller
     public function hasil(Request $request)
     {
         // Mendapatkan input pencarian dari request
+        // Ambil guru yang sedang login
+        $teacher = Auth::id();
+
+        // Ambil input untuk pencarian
         $search = $request->input('search');
-    
-        // Mengambil data jawaban ujian dengan relasi student, ujian, dan soal
+
+        // Ambil hasil ujian yang sudah selesai dan sesuai kategori
         $hasil = ExamAnswer::with(['student', 'ujian', 'soal'])
             ->where('status', 'Selesai')
+            ->whereHas('soal', function ($query) use ($teacher) {
+                $query->where('kategori_id', $teacher);
+            })
             ->when($search, function ($query) use ($search) {
                 // Filter berdasarkan nama siswa
                 $query->whereHas('student', function ($q) use ($search) {
@@ -75,12 +83,12 @@ class DashboardController extends Controller
             ->groupBy(function ($item) {
                 return $item->ujian->jam_ujian; // Mengelompokkan berdasarkan jam ujian
             });
-    
+
         // Paginasi manual pada Collection
         $currentPage = $request->input('page', 1);
         $perPage = 10;
         $paginatedHasil = $hasil->forPage($currentPage, $perPage);
-    
+
         // Membuat LengthAwarePaginator manual
         $hasil = new \Illuminate\Pagination\LengthAwarePaginator(
             $paginatedHasil,
@@ -89,22 +97,23 @@ class DashboardController extends Controller
             $currentPage,
             ['path' => $request->url(), 'query' => $request->query()]
         );
-    
+
         // Mengirim hasil ke view admin
         return view('admin.hasilujian.hasil', compact('hasil'));
     }
-    
+
 
     public function cetaksemua(Request $request)
     {
-        // Mendapatkan input pencarian dari request
         $search = $request->input('search');
-    
+        $teacher = Auth::id();
         // Mengambil data jawaban ujian dengan relasi student, ujian, dan soal
         $hasil = ExamAnswer::with(['student', 'ujian', 'soal'])
             ->where('status', 'Selesai')
+            ->whereHas('soal', function ($query) use ($teacher) {
+                $query->where('kategori_id', $teacher);
+            })
             ->when($search, function ($query) use ($search) {
-                // Filter berdasarkan nama siswa
                 $query->whereHas('student', function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%");
                 });
@@ -114,7 +123,7 @@ class DashboardController extends Controller
                 // Mengelompokkan berdasarkan jam ujian
                 return $item->ujian->jam_ujian;
             });
-    
+
         // Membuat PDF dengan data yang sudah dikelompokkan
         $pdf = Pdf::loadView('admin.hasilujian.cetaksemua', [
             'hasil' => $hasil,
@@ -123,13 +132,13 @@ class DashboardController extends Controller
             'report_date' => now()->format('d/m/Y H:i:s'),
             'report_title' => 'Laporan Hasil Ujian'
         ]);
-    
+
         // Menghasilkan file PDF dan menampilkannya
         return $pdf->stream('laporan-hasil-ujian.pdf');
     }
-    
 
-    
+
+
     public function pages1()
     {
         return view('home');

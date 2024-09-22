@@ -17,14 +17,20 @@ class UjianController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::id();
+        $search = $request->input('search');
         // Group by category and exam time (jam_ujian), and count the number of exams
         $ujian = Ujian::where('user_id', $user)
-            ->select('kategori_id', 'category_id', 'jam_ujian', 'tanggal_ujian', 'kelas', 'durasi', DB::raw('COUNT(*) as student_count'))
-            ->groupBy('kategori_id', 'category_id', 'jam_ujian', 'tanggal_ujian', 'kelas', 'durasi')
-            ->paginate(10);
+        ->when($search, function ($query, $search) {
+            return $query->where(function ($q) use ($search) {
+                $q->where('tanggal_ujian', 'like', "%{$search}%");
+            });
+        })
+        ->select('kategori_id', 'category_id', 'jam_ujian', 'tanggal_ujian', 'kelas', 'durasi', DB::raw('COUNT(*) as student_count'))
+        ->groupBy('kategori_id', 'category_id', 'jam_ujian', 'tanggal_ujian', 'kelas', 'durasi')
+        ->paginate(10);
 
         return view('admin.ujian.index', compact('ujian'));
     }

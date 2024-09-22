@@ -8,12 +8,26 @@
             </ol>
         </nav>
         <x-pages.card>
-            @php
-                $waktu = Carbon\Carbon::now()->format('d F Y, H:i');
-            @endphp
             <h2 class="font-semibold font-serif">Jadwal Ujian | {{ $waktu }} </h2>
         </x-pages.card>
         <x-pages.card>
+            <div class="mb-4">
+                <form action="{{ route('jadwal.index') }}" method="GET">
+                    <div class="form-group d-flex align-items-end">
+                        <label for="category-select" class="me-2">Pilih Kategori:</label>
+                        <select name="category_id" id="category-select" class="form-control" style="width: 400px">
+                            <option value="">Semua Kategori</option>
+                            @foreach ($categories as $category)
+                                <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>
+                                    {{ $category->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <button class="btn btn-primary ms-2" type="submit">Cari</button>
+                    </div>
+                </form>
+            </div>            
+            
             <x-Tables.tabel>
                 <thead>
                     <x-Tables.th>

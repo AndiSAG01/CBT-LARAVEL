@@ -88,6 +88,6 @@ class AuthController extends Controller
     public function logout()
     {
         Auth::logout();
-        return redirect()->route('login.siswa')->with('success', 'Berhasil Logout');
+        return redirect()->route('pages1')->with('success', 'Berhasil Logout');
     }
 }

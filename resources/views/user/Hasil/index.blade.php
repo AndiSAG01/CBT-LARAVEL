@@ -47,7 +47,10 @@
                             <x-Tables.td>{{ $incorrect }}</x-Tables.td>
                             <x-Tables.td>{{ $nilai }}</x-Tables.td>
                             <x-Tables.td>
-                                ini tombol melihat soal yang benar dan salah
+                                <a href="{{ route('hasil.show', $group->first()->id) }}" 
+                                    class="px-4 py-2 bg-blue-500 text-white rounded-md">
+                                    Lihat Detail
+                                 </a>
                             </x-Tables.td>
 
                         </tr>
