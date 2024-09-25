@@ -267,59 +267,69 @@
     });
 </script>
 <script>
-    // Ensure the server-side variable is correctly passed as a numeric value
+    // Get the exam start time and convert it to a timestamp
+    const examStartTime = new Date("{{ $ujian->tanggal_ujian }} {{ $ujian->jam_ujian }}").getTime();
     const examDurationMinutes = parseInt(@json($ujian->durasi), 10); // Duration in minutes from the controller
 
+    // Ensure the server-side variable is correctly passed as a numeric value
     if (isNaN(examDurationMinutes) || examDurationMinutes <= 0) {
         console.error('Invalid exam duration:', examDurationMinutes);
     } else {
         const currentTime = new Date().getTime(); // Current time in milliseconds
-        let examEndTime = localStorage.getItem('examEndTime');
 
-        // If there's no stored end time, calculate it and store it
-        if (!examEndTime) {
-            examEndTime = currentTime + (examDurationMinutes * 60 * 1000); // Duration in milliseconds
-            localStorage.setItem('examEndTime', examEndTime);
+        // Calculate the exam end time based on the start time and duration
+        const examEndTime = examStartTime + (examDurationMinutes * 60 * 1000); // Duration in milliseconds
+
+        // Check if the current time is before the exam start time
+        if (currentTime < examStartTime) {
+            document.getElementById('countdown').innerText = 'Menunggu waktu ujian dimulai...';
+
+            // Wait until the exam start time is reached
+            const waitTime = examStartTime - currentTime;
+            setTimeout(startCountdown, waitTime);
         } else {
-            examEndTime = parseInt(examEndTime, 10); // Parse stored end time
+            // If the current time is past the start time, start the countdown
+            startCountdown();
         }
 
-        function updateCountdown() {
-            const now = new Date().getTime(); // Get current time
-            const remainingTime = examEndTime - now; // Calculate remaining time
+        function startCountdown() {
+            function updateCountdown() {
+                const now = new Date().getTime(); // Get current time
+                const remainingTime = examEndTime - now; // Calculate remaining time
 
-            // If time has expired, submit the form automatically
-            if (remainingTime <= 0) {
-                document.getElementById('countdown').innerText = 'Waktu Habis';
+                // If time has expired, submit the form automatically
+                if (remainingTime <= 0) {
+                    document.getElementById('countdown').innerText = 'Waktu Habis';
 
-                // Submit form automatically
-                document.getElementById('examForm').submit();
+                    // Submit form automatically
+                    document.getElementById('examForm').submit();
 
-                // Redirect to the schedule page after form submission
-                setTimeout(function() {
-                    window.location.href = "{{ route('jadwal.index') }}";
-                }, 1000); // Delay 1 second to ensure form submission
+                    // Redirect to the schedule page after form submission
+                    setTimeout(function() {
+                        window.location.href = "{{ route('jadwal.index') }}";
+                    }, 1000); // Delay 1 second to ensure form submission
 
-                // Clear the stored end time
-                localStorage.removeItem('examEndTime');
-                return;
+                    return;
+                }
+
+                // Calculate minutes and seconds remaining
+                const minutes = Math.floor(remainingTime / (1000 * 60)); // Total minutes
+                const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000); // Remaining seconds
+
+                // Display the remaining time in minutes and seconds
+                document.getElementById('countdown').innerText = `${minutes}m ${seconds}s`;
+
+                // Update countdown every 1 second
+                setTimeout(updateCountdown, 1000);
             }
 
-            // Calculate minutes and seconds remaining
-            const minutes = Math.floor(remainingTime / (1000 * 60)); // Total minutes
-            const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000); // Remaining seconds
-
-            // Display the remaining time in minutes and seconds
-            document.getElementById('countdown').innerText = `${minutes}m ${seconds}s`;
-
-            // Update countdown every 1 second
-            setTimeout(updateCountdown, 1000);
+            // Start the countdown
+            updateCountdown();
         }
-
-        // Start the countdown
-        updateCountdown();
     }
 </script>
+
+
 
 
 

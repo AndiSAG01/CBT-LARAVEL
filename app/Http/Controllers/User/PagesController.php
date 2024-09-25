@@ -4,8 +4,10 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\ExamAnswer;
+use App\Models\Soal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class PagesController extends Controller
 {
@@ -40,18 +42,26 @@ class PagesController extends Controller
             ['path' => request()->url(), 'query' => request()->query()]
         );
 
-        return view('user.Hasil.index', compact('hasil'));
+        $total = Soal::select('kategori_id', DB::raw('count(*) as total_soal'))
+        ->groupBy('kategori_id')
+        ->pluck('total_soal', 'kategori_id');
+
+        return view('user.Hasil.index', compact('hasil','total'));
     }
 
-    public function show($id)
+    public function show($ujianId, $kategoriId)
     {
-        $hasil = ExamAnswer::with('soal') // Load the 'soal' relationship
-            ->whereHas('soal', function ($query) use ($id) {
-                $query->where('kategori_id', $id);
-            })->get();
-
+        // Load the 'soal' relationship and filter by both exam (ujianId) and category (kategoriId)
+        $hasil = ExamAnswer::with('soal')
+            ->whereHas('soal', function ($query) use ($ujianId, $kategoriId) {
+                $query->where('kategori_id', $kategoriId) // Filter by category
+                      ->where('ujian_id', $ujianId); // Filter by specific exam (ujian_id)
+            })
+            ->get();
+    
         return view('user.Hasil.detail', compact('hasil'));
     }
+    
     
     
     

@@ -54,54 +54,61 @@
         </x-pages.card>
         <x-pages.card>
             <h1 class="mb-4">Hasil Ujian per Kategori</h1>
-
             <div class="form-group mb-4">
-                <label for="category-select">Pilih Kategori:</label>
-                <select id="category-select" class="form-control">
-                    <option value="">Select a category</option>
-                    @foreach ($categories as $id => $kategori)
-                        <option value="{{ $id }}">{{ $kategori->name }}</option>
-                    @endforeach
-                </select>
+                <form action="{{ route('siswa.detail',['siswa' => $siswa->id]) }}" method="GET">
+                    <div class="form-group d-flex align-items-end">
+                        <label for="category-select" class="me-2">Pilih Kategori:</label>
+                        <select name="category_id" id="category-select" class="form-control" style="width: 400px">
+                            <option value="">Semua Kategori</option>
+                            @foreach ($kategori as $category)
+                                <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>
+                                    {{ $category->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <button class="btn btn-primary ms-2" type="submit">Cari</button>
+                    </div>
+                </form>
             </div>
+            
 
-            <div class="table-responsive mb-4">
-                <table class="table table-striped">
+            <div id="results-container">
+                <x-Tables.tabel>
                     <thead>
-                        <tr>
-                            <th>No</th>
-                            <th>Kategori</th>
-                            <th>Jenis Ujian</th>
-                            <th>Nilai Ujian</th>
-                            <th>Tanggal Ujian</th>
-                            <th>Status</th>
-                        </tr>
+                        <x-Tables.th>No</x-Tables.th>
+                        <x-Tables.th>Mata Pelajaran</x-Tables.th>
+                        <x-Tables.th>Tanggal Ujian</x-Tables.th>
+                        <x-Tables.th>Jam</x-Tables.th>
+                        <x-Tables.th>Nilai</x-Tables.th>
+                        <x-Tables.th>Status</x-Tables.th>
                     </thead>
-                    <tbody>
-                        @foreach ($hasil as $index => $result)
+                    <tbody id="results-body">
+                        @foreach ($hasil as $no => $group)
+                            @php
+                                $correct = $group
+                                    ->filter(function ($item) {
+                                        return $item->answer === $item->soal->kunci_jawaban; // Jawaban benar
+                                    })
+                                    ->count();
+
+                                // Cast to integer before doing any further operations
+                                $nilai = (int) $correct * 10;
+
+                                $firstItem = $group->first();
+                            @endphp
                             <tr>
-                                <td>{{ $index + 1 }}</td>
-                                <td>{{ $result->soal->kategori->name }}</td>
-                                <td>{{ $result->ujian->category->name }}</td>
-                                <td>{{ $nilai }}</td>
-                                <td>{{ $result->ujian->tanggal_ujian }}</td>
-                                <td>
-                                    @if ($result->status == 'Selesai')
-                                    <span class="badge bg-success">Selesai</span>
-                                @elseif ($current_time->lessThan($exam_time))
-                                    <span class="badge bg-warning text-white">Belum Dimulai</span>
-                                @elseif ($current_time->greaterThanOrEqualTo($exam_time))
-                                    <span class="badge bg-secondary text-white">Belum Diselesaikan</span>
-                                @endif
-                                </td>
+                                <x-Tables.td>{{ $loop->iteration }}</x-Tables.td>
+                                <x-Tables.td>{{ $firstItem->soal->kategori->name }}</x-Tables.td>
+                                <x-Tables.td>{{ optional($firstItem->ujian)->tanggal_ujian }}</x-Tables.td>
+                                <x-Tables.td>{{ optional($firstItem->ujian)->jam_ujian }}</x-Tables.td>
+                                <x-Tables.td>{{ $nilai }}</x-Tables.td>
+                                <x-Tables.td><span class="badge bg-success">Selesai</span></x-Tables.td>
                             </tr>
                         @endforeach
                     </tbody>
-                </table>
+                </x-Tables.tabel>
             </div>
-            
         </x-pages.card>
 
     </x-pages.container>
-  
 </x-admin>

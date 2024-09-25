@@ -28,9 +28,10 @@ class UjianController extends Controller
                 $q->where('tanggal_ujian', 'like', "%{$search}%");
             });
         })
-        ->select('kategori_id', 'category_id', 'jam_ujian', 'tanggal_ujian', 'kelas', 'durasi', DB::raw('COUNT(*) as student_count'))
-        ->groupBy('kategori_id', 'category_id', 'jam_ujian', 'tanggal_ujian', 'kelas', 'durasi')
+        ->select('id', 'kategori_id', 'category_id', 'jam_ujian', 'tanggal_ujian', 'kelas', 'durasi', DB::raw('COUNT(*) as student_count'))
+        ->groupBy('id', 'kategori_id', 'category_id', 'jam_ujian', 'tanggal_ujian', 'kelas', 'durasi') // Add 'id' to the groupBy clause
         ->paginate(10);
+    
 
         return view('admin.ujian.index', compact('ujian'));
     }
@@ -84,8 +85,9 @@ class UjianController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Ujian $ujian)
+    public function edit($id)
     {
+        $ujian = Ujian::find($id);
         $user = Auth::id();
         $siswa = Student::all();
         $kategori =  Kategori::all();

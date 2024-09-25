@@ -19,6 +19,8 @@
                     <x-Tables.th>Jam</x-Tables.th>
                     <x-Tables.th>Benar</x-Tables.th>
                     <x-Tables.th>Salah</x-Tables.th>
+                    <x-Tables.th>Soal Terjawab</x-Tables.th>
+                    <x-Tables.th>Total Soal</x-Tables.th> <!-- Kolom untuk menampilkan jumlah soal dari tabel soal -->
                     <x-Tables.th>Nilai</x-Tables.th>
                     <x-Tables.th>Action</x-Tables.th>
                 </thead>
@@ -26,9 +28,11 @@
                     @foreach ($hasil as $no => $group)
                         @php
                             // Menghitung jumlah jawaban benar dan salah dalam grup
-                            $correct = $group->filter(function($item) {
-                                return $item->answer === $item->soal->kunci_jawaban; // Jawaban benar
-                            })->count();
+                            $correct = $group
+                                ->filter(function ($item) {
+                                    return $item->answer === $item->soal->kunci_jawaban; // Jawaban benar
+                                })
+                                ->count();
             
                             $incorrect = $group->count() - $correct; // Jawaban salah = total - benar
             
@@ -37,6 +41,10 @@
             
                             // Menghitung nilai dengan asumsi setiap jawaban benar bernilai 10 poin
                             $nilai = $correct * 10;
+            
+                            // Mengambil jumlah soal dari tabel soal berdasarkan kategori
+                            $totalSoal = $total[$firstItem->soal->kategori->id] ?? 0;
+                            $Jawab = $group->count();
                         @endphp
                         <tr>
                             <x-Tables.td>{{ $loop->iteration }}</x-Tables.td>
@@ -45,20 +53,20 @@
                             <x-Tables.td>{{ optional($firstItem->ujian)->jam_ujian }}</x-Tables.td>
                             <x-Tables.td>{{ $correct }}</x-Tables.td>
                             <x-Tables.td>{{ $incorrect }}</x-Tables.td>
+                            <x-Tables.td>{{ $Jawab }}</x-Tables.td>
+                            <x-Tables.td>{{ $totalSoal }}</x-Tables.td> <!-- Menampilkan jumlah soal dari tabel soal -->
                             <x-Tables.td>{{ $nilai }}</x-Tables.td>
                             <x-Tables.td>
-                                <a href="{{ route('hasil.show', $group->first()->id) }}" 
-                                    class="px-4 py-2 bg-blue-500 text-white rounded-md">
-                                    Lihat Detail
-                                 </a>
+                                <a href="{{ route('hasil.show', ['ujianId' => $firstItem->ujian->id, 'kategoriId' => $firstItem->soal->kategori->id]) }}"
+                                    class="btn btn-primary">Lihat Detail</a>
                             </x-Tables.td>
-
                         </tr>
                     @endforeach
                 </tbody>
             </x-Tables.tabel>
             
-            
+
+
             <div class="flex items-center justify-between p-4 border-t border-blue-gray-50">
                 <p class="block font-sans text-sm antialiased font-normal leading-normal text-blue-gray-900">
                     Page {{ $hasil->currentPage() }} of {{ $hasil->lastPage() }}
@@ -96,7 +104,7 @@
                         </button>
                     @endif
                 </div>
-            </div>     
+            </div>
         </x-pages.card>
         </div>
     </x-pages.container>

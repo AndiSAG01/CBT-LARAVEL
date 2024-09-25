@@ -28,7 +28,7 @@ class LoginController extends Controller
         if (auth()->user()->isAdmin == 1) {
             return '/home'; // Redirect admin to the dashboard
         }
-        return redirect('/pengajar')->with('success','Anda Berhasil Login');
+        return redirect('/pengajar')->with('success', 'Anda Berhasil Login');
     }
 
     /**
@@ -44,8 +44,16 @@ class LoginController extends Controller
             return redirect('/home')->with('success', 'Selamat Datang Admin');
         }
 
-        return redirect('/pengajar')->with('success','Anda Berhasil Login');
+        return redirect('/pengajar')->with('success', 'Anda Berhasil Login');
     }
+
+    protected function sendFailedLoginResponse(Request $request)
+    {
+        return redirect()->back()
+            ->withInput($request->only('email', 'remember'))
+            ->with('error', 'Login gagal. Silakan periksa email dan password Anda.');
+    }
+
 
     /**
      * Create a new controller instance.
@@ -58,4 +66,3 @@ class LoginController extends Controller
         $this->middleware('auth')->only('logout');
     }
 }
-

@@ -14,21 +14,21 @@ use Illuminate\Support\Facades\Storage;
 class GuruController extends Controller
 {
     public function index(Request $request)
-{
-    $query = User::where('isAdmin', 0); // Only select users where isAdmin is 0
+    {
+        $query = User::where('isAdmin', 0); // Only select users where isAdmin is 0
 
-    if ($search = $request->input('search')) {
-        $query->where(function ($q) use ($search) {
-            $q->where('name', 'like', "%{$search}%")
-              ->orWhere('Position', 'like', "%{$search}%")
-              ->orWhere('NIK', 'like', "%{$search}%");
-        });
+        if ($search = $request->input('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('Position', 'like', "%{$search}%")
+                    ->orWhere('NIK', 'like', "%{$search}%");
+            });
+        }
+
+        $gurus = $query->paginate(10);
+
+        return view('admin.guru.index', compact('gurus'));
     }
-
-    $gurus = $query->paginate(10);
-
-    return view('admin.guru.index', compact('gurus'));
-}
 
 
     public function store(RequestGuru $request)
@@ -36,26 +36,25 @@ class GuruController extends Controller
         // Create a new guru data array except for password and image fields
         $guruData = $request->except('password', 'image');
         $guruData['password'] = Hash::make($request->password);
-    
+
         // Handle file upload
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('assets/Fotoguru', 'public');
             $guruData['image'] = $path;
         }
-    
+
         // Assign default value for isAdmin
         $guruData['isAdmin'] = 0;
-    
+
         // Create the new user (Guru)
         User::create($guruData);
-    
+
         return redirect()->route('guru')->with('success', 'Guru berhasil ditambahkan!');
     }
-    
 
-    public function edit(Guru $guru)
+
+    public function edit(User $guru)
     {
-        // Get the guru by ID
         return view('admin.guru.edit', compact('guru'));
     }
 
@@ -93,6 +92,6 @@ class GuruController extends Controller
 
         $guru->delete();
 
-        return redirect()->route('guru')->with('success', 'Guru berhasil dihapus!');       
+        return redirect()->route('guru')->with('success', 'Guru berhasil dihapus!');
     }
 }

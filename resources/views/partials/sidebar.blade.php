@@ -23,18 +23,8 @@
                         </a>
                     </li>
                     <li>
-                        <a class="nav-item" href="{{ route('kategori.index') }}">
-                            <i class="far fa-file-alt"></i><span class="nav-text">Manajeman Soal</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="nav-item" href="{{ route('CategoryExam.index') }}">
-                            <i class="fas fa-user-edit"></i><span class="nav-text">Manajeman Peserta Ujian</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="nav-item" href="{{ route('ujian.hasil') }}">
-                            <i class="fas fa-clipboard-list"></i><span class="nav-text">Hasil Ujian</span>
+                        <a class="nav-item" href="{{ route('siswa.laporan') }}">
+                            <i class="fas fa-clipboard-list"></i><span class="nav-text">Laporan Siswa</span>
                         </a>
                     </li>
                     @elseif (Auth()->user()->isAdmin == 0)

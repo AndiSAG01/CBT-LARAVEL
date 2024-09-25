@@ -59,6 +59,7 @@
 
                                 <td class="p-4 border-b border-blue-gray-50">
                                     @if ($item->status == 'Belum Dimulai')
+                                    
                                         <div class="d-flex align-items-center">
                                             <a href="{{ route('ujian.edit', $item->id) }}">
                                                 <button
