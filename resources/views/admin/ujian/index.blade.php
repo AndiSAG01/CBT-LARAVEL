@@ -111,8 +111,15 @@
                                             <i class="fas fa-eye fa-sm"></i>
                                         </button>
                                     </a>
-                                                                                                  
-                                </td>
+                                    <a href="{{ route('ujian.edit', ['kategori_id' => $item->kategori_id, 'jam_ujian' => $item->jam_ujian]) }}">
+                                        <button
+                                            class="relative h-10 max-h-[40px] bg-primary w-10 max-w-[40px] select-none rounded-lg text-center align-middle font-sans text-xs font-medium uppercase text-gray-900 transition-all hover:bg-gray-900/10 active:bg-gray-900/20 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+                                            type="button">
+                                            <i class="fas fa-pen fa-sm"></i>
+                                        </button>
+                                    </a>
+                                    
+                                </td>                                
                             </tr>
                         @endforeach
                     </tbody>

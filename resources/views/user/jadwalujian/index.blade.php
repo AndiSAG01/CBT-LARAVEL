@@ -30,78 +30,58 @@
             
             <x-Tables.tabel>
                 <thead>
-                    <x-Tables.th>
-                        No
-                    </x-Tables.th>
-                    <x-Tables.th>
-                        Mata Pelajaran
-                    </x-Tables.th>
-                    <x-Tables.th>
-                        Waktu Ujian
-                    </x-Tables.th>
-                    <x-Tables.th>
-                        Durasi
-                    </x-Tables.th>
-                    <x-Tables.th>
-                        Jenis Ujian
-                    </x-Tables.th>
-                    <x-Tables.th>
-                        Status
-                    </x-Tables.th>
-                    <x-Tables.th>
-                        Action
-                    </x-Tables.th>
+                    <x-Tables.th>No</x-Tables.th>
+                    <x-Tables.th>Mata Pelajaran</x-Tables.th>
+                    <x-Tables.th>Waktu Ujian</x-Tables.th>
+                    <x-Tables.th>Durasi</x-Tables.th>
+                    <x-Tables.th>Jenis Ujian</x-Tables.th>
+                    <x-Tables.th>Status</x-Tables.th>
+                    <x-Tables.th>Action</x-Tables.th>
                 </thead>
                 <tbody>
                     @foreach ($jadwal as $no => $item)
                         <tr>
-                            <x-Tables.td>
-                                {{ ++$no }}
-                            </x-Tables.td>
-                            <x-Tables.td>
-                                {{ $item->kategori->name }}
-                            </x-Tables.td>
-                            <x-Tables.td>
-                               {{ $item->tanggal_ujian }} | {{ $item->jam_ujian }}
-                            </x-Tables.td>
-                            <x-Tables.td>
-                                {{ $item->durasi }} Menit
-                            </x-Tables.td>
-                            <x-Tables.td>
-                                {{ $item->category->name }}
-                            </x-Tables.td>
+                            <x-Tables.td>{{ ++$no }}</x-Tables.td>
+                            <x-Tables.td>{{ $item->kategori->name }}</x-Tables.td>
+                            <x-Tables.td>{{ $item->tanggal_ujian }} | {{ $item->jam_ujian }}</x-Tables.td>
+                            <x-Tables.td>{{ $item->durasi }} Menit</x-Tables.td>
+                            <x-Tables.td>{{ $item->category->name }}</x-Tables.td>
                             <x-Tables.td>
                                 @php
                                     $current_time = Carbon\Carbon::now();
-                                    $exam_time = Carbon\Carbon::parse($item->tanggal_ujian . ' ' . $item->jam_ujian);
+                                    $exam_start_time = Carbon\Carbon::parse($item->tanggal_ujian . ' ' . $item->jam_ujian);
+                                    $exam_end_time = $exam_start_time->copy()->addMinutes($item->durasi);
                                 @endphp
-                            
+            
                                 @if ($item->status == 'Selesai')
                                     <span class="badge bg-success">Selesai</span>
-                                @elseif ($current_time->lessThan($exam_time))
+                                @elseif ($current_time->lessThan($exam_start_time))
                                     <span class="badge bg-warning text-white">Belum Dimulai</span>
-                                @elseif ($current_time->greaterThanOrEqualTo($exam_time))
+                                @elseif ($current_time->greaterThanOrEqualTo($exam_start_time) && $current_time->lessThanOrEqualTo($exam_end_time))
                                     <span class="badge bg-secondary text-white">Belum Diselesaikan</span>
+                                @elseif ($current_time->greaterThan($exam_end_time) && $item->status != 'Selesai')
+                                    <span class="badge bg-danger text-white">Terlambat</span>
                                 @endif
                             </x-Tables.td>
-                            
+            
                             <x-Tables.td>
                                 @if ($item->status == 'Selesai')
                                     <button class="btn btn-success" disabled>Selesai</button>
-                                @elseif ($current_time->lessThan($exam_time))
+                                @elseif ($current_time->lessThan($exam_start_time))
                                     <button class="btn btn-warning" disabled>Belum Dimulai</button>
-                                @elseif ($current_time->greaterThanOrEqualTo($exam_time))
+                                @elseif ($current_time->greaterThan($exam_end_time) && $item->status != 'Selesai')
+                                    <button class="btn btn-danger" disabled>Terlambat</button>
+                                @else
                                     <a href="{{ route('exam.index', $item->id) }}">
                                         <button class="btn btn-info">Kerjakan Soal</button>
                                     </a>
                                 @endif
                             </x-Tables.td>
-                                                          
                         </tr>
                     @endforeach
                 </tbody>
-                
             </x-Tables.tabel>
+            
             <div class="flex items-center justify-between p-4 border-t border-blue-gray-50">
                 <p class="block font-sans text-sm antialiased font-normal leading-normal text-blue-gray-900">
                     Page {{ $jadwal->currentPage() }} of {{ $jadwal->lastPage() }}

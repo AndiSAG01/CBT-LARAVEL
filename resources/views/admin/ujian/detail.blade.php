@@ -11,7 +11,8 @@
         </nav>
 
         <x-pages.card>
-            <div class="relative flex flex-col w-full h-full text-gray-700 bg-white shadow-md rounded-xl bg-clip-border">
+            <div
+                class="relative flex flex-col w-full h-full text-gray-700 bg-white shadow-md rounded-xl bg-clip-border">
                 <div class="relative mx-4 mt-4 overflow-hidden text-gray-700 bg-white rounded-none bg-clip-border">
                     <div class="flex items-center justify-between gap-8 mb-8">
                         <div>
@@ -20,7 +21,7 @@
                                 Daftar Peserta Ujian <i class="fas fa-address-book"></i>
                             </h5>
                         </div>
-                        
+
                     </div>
                 </div>
                 <x-Tables.tabel>
@@ -44,30 +45,26 @@
                                 <x-Tables.td>
                                     @php
                                         $current_time = Carbon\Carbon::now();
-                                        $exam_time = Carbon\Carbon::parse(
+                                        $exam_start_time = Carbon\Carbon::parse(
                                             $item->tanggal_ujian . ' ' . $item->jam_ujian,
                                         );
+                                        $exam_end_time = $exam_start_time->copy()->addMinutes($item->durasi);
                                     @endphp
+
                                     @if ($item->status == 'Selesai')
                                         <span class="badge bg-success">Selesai</span>
-                                    @elseif ($current_time->lessThan($exam_time))
+                                    @elseif ($current_time->lessThan($exam_start_time))
                                         <span class="badge bg-warning text-white">Belum Dimulai</span>
-                                    @elseif ($current_time->greaterThanOrEqualTo($exam_time))
+                                    @elseif ($current_time->greaterThanOrEqualTo($exam_start_time) && $current_time->lessThanOrEqualTo($exam_end_time))
                                         <span class="badge bg-secondary text-white">Belum Diselesaikan</span>
+                                    @elseif ($current_time->greaterThan($exam_end_time) && $item->status != 'Selesai')
+                                        <span class="badge bg-danger text-white">Terlambat</span>
                                     @endif
                                 </x-Tables.td>
 
                                 <td class="p-4 border-b border-blue-gray-50">
                                     @if ($item->status == 'Belum Dimulai')
-                                    
                                         <div class="d-flex align-items-center">
-                                            <a href="{{ route('ujian.edit', $item->id) }}">
-                                                <button
-                                                    class="relative h-10 max-h-[40px] bg-primary w-10 max-w-[40px] select-none rounded-lg text-center align-middle font-sans text-xs font-medium uppercase text-gray-900 transition-all hover:bg-gray-900/10 active:bg-gray-900/20 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
-                                                    type="button">
-                                                    <i class="fas fa-pen fa-sm"></i>
-                                                </button>
-                                            </a>
                                             <form id="deleteForm{{ $item->id }}" style="margin-left: 2%;"
                                                 action="{{ route('ujian.delete', $item->id) }}" method="POST"
                                                 enctype="multipart/form-data">

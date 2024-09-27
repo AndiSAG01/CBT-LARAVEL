@@ -97,7 +97,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/kelola-ujian/create', [UjianController::class, 'create'])->name('ujian.create');
     Route::post('/kelola-ujian/store', [UjianController::class, 'store'])->name('ujian.store');
     Route::get('/kelola-ujian/detail/{kategori_id}/{jam_ujian}', [UjianController::class, 'show'])->name('ujian.show');
-    Route::get('/kelola-ujian/edit/{id}', [UjianController::class, 'edit'])->name('ujian.edit');
+    Route::get('/kelola-ujian/edit/{kategori_id}/{jam_ujian}', [UjianController::class, 'edit'])->name('ujian.edit');
     Route::put('/kelola-ujian/update/{ujian}', [UjianController::class, 'update'])->name('ujian.update');
     Route::delete('/kelola-ujian/delete/{ujian}', [UjianController::class, 'destroy'])->name('ujian.delete');
     Route::post('/get-siswa-by-class', [UjianController::class, 'getSiswaByClass'])->name('getSiswaByClass');
@@ -122,6 +122,7 @@ Route::middleware(['auth:student', 'siswa'])->group(function () {
 
     Route::get('/exam/{ujian}/soal/{kategori_id?}', [ExamController::class, 'index'])->name('exam.index');
     Route::post('/exam/store', [ExamController::class, 'storeAnswer'])->name('exam.store');
+    
 
 
     Route::get('hasil-ujian', [PagesController::class, 'hasil'])->name('hasil.index');

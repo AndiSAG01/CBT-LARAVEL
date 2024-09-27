@@ -42,9 +42,12 @@ class PagesController extends Controller
             ['path' => request()->url(), 'query' => request()->query()]
         );
 
-        $total = Soal::select('kategori_id', DB::raw('count(*) as total_soal'))
+        $total = Soal::select('kategori_id', Soal::raw('COUNT(*) as published'))
+        ->where('published', true) // Only count published questions
         ->groupBy('kategori_id')
-        ->pluck('total_soal', 'kategori_id');
+        ->get()
+        ->keyBy('kategori_id')
+        ->toArray();
 
         return view('user.Hasil.index', compact('hasil','total'));
     }

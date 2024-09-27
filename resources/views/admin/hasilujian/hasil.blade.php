@@ -49,7 +49,7 @@
                     <x-Tables.th>Jam <i class="fas fa-clock"></i></x-Tables.th>
                     <x-Tables.th>Benar <i class="fas fa-check-circle"></i></x-Tables.th>
                     <x-Tables.th>Salah <i class="fas fa-times-circle"></i></x-Tables.th>
-                    <x-Tables.th>Nilai <i class="fas fa-poll"></i></x-Tables.th>
+                    {{-- <x-Tables.th>Nilai <i class="fas fa-poll"></i></x-Tables.th> --}}
                 </thead>
                 <tbody>
                     @foreach ($hasil as $no => $group)
@@ -78,7 +78,7 @@
                             <x-Tables.td>{{ optional($firstItem->ujian)->jam_ujian }}</x-Tables.td>
                             <x-Tables.td>{{ $correct }}</x-Tables.td>
                             <x-Tables.td>{{ $incorrect }}</x-Tables.td>
-                            <x-Tables.td>{{ $nilai }}</x-Tables.td>
+                            {{-- <x-Tables.td>{{ $nilai }}</x-Tables.td> --}}
                         </tr>
                     @endforeach
                 </tbody>

@@ -288,7 +288,7 @@
             const waitTime = examStartTime - currentTime;
             setTimeout(startCountdown, waitTime);
         } else {
-            // If the current time is past the start time, start the countdown
+            // If the current time is past the start time, start the countdown immediately
             startCountdown();
         }
 
@@ -297,19 +297,19 @@
                 const now = new Date().getTime(); // Get current time
                 const remainingTime = examEndTime - now; // Calculate remaining time
 
-                // If time has expired, submit the form automatically
+                // If time has expired, display "Waktu Habis" and submit the form
                 if (remainingTime <= 0) {
                     document.getElementById('countdown').innerText = 'Waktu Habis';
 
-                    // Submit form automatically
-                    document.getElementById('examForm').submit();
+                    // Submit form via AJAX to update the exam status to "Selesai"
+                    submitExamForm();
 
-                    // Redirect to the schedule page after form submission
+                    // Redirect to jadwal.index after submission
                     setTimeout(function() {
-                        window.location.href = "{{ route('jadwal.index') }}";
-                    }, 1000); // Delay 1 second to ensure form submission
+                        window.location.href = "{{ route('jadwal.index') }}"; // Redirect after submission
+                    }, 2000); // Delay 2 seconds to allow form submission
 
-                    return;
+                    return; // Stop the countdown
                 }
 
                 // Calculate minutes and seconds remaining
@@ -326,8 +326,37 @@
             // Start the countdown
             updateCountdown();
         }
+
+        function submitExamForm() {
+            // Use AJAX to submit the form without reloading the page
+            const formData = new FormData(document.getElementById('examForm'));
+            formData.append('status', 'Selesai'); // Add the status update to the form data
+
+            // Perform the AJAX request
+            fetch("{{ route('exam.store', $ujian->id) }}", {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': "{{ csrf_token() }}", // Add CSRF token
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('Exam submitted successfully:', data.message);
+                } else {
+                    console.error('Error submitting exam:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
     }
 </script>
+
+
 
 
 

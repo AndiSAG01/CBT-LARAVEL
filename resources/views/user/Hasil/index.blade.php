@@ -21,47 +21,51 @@
                     <x-Tables.th>Salah</x-Tables.th>
                     <x-Tables.th>Soal Terjawab</x-Tables.th>
                     <x-Tables.th>Total Soal</x-Tables.th> <!-- Kolom untuk menampilkan jumlah soal dari tabel soal -->
-                    <x-Tables.th>Nilai</x-Tables.th>
+                    {{-- <x-Tables.th>Nilai</x-Tables.th> --}}
                     <x-Tables.th>Action</x-Tables.th>
                 </thead>
                 <tbody>
                     @foreach ($hasil as $no => $group)
-                        @php
-                            // Menghitung jumlah jawaban benar dan salah dalam grup
-                            $correct = $group
-                                ->filter(function ($item) {
-                                    return $item->answer === $item->soal->kunci_jawaban; // Jawaban benar
-                                })
-                                ->count();
-            
-                            $incorrect = $group->count() - $correct; // Jawaban salah = total - benar
-            
-                            // Mengambil data dari item pertama dalam grup untuk menampilkan data umum
-                            $firstItem = $group->first();
-            
-                            // Menghitung nilai dengan asumsi setiap jawaban benar bernilai 10 poin
-                            $nilai = $correct * 10;
-            
-                            // Mengambil jumlah soal dari tabel soal berdasarkan kategori
-                            $totalSoal = $total[$firstItem->soal->kategori->id] ?? 0;
-                            $Jawab = $group->count();
-                        @endphp
-                        <tr>
-                            <x-Tables.td>{{ $loop->iteration }}</x-Tables.td>
-                            <x-Tables.td>{{ $firstItem->soal->kategori->name }}</x-Tables.td>
-                            <x-Tables.td>{{ optional($firstItem->ujian)->tanggal_ujian }}</x-Tables.td>
-                            <x-Tables.td>{{ optional($firstItem->ujian)->jam_ujian }}</x-Tables.td>
-                            <x-Tables.td>{{ $correct }}</x-Tables.td>
-                            <x-Tables.td>{{ $incorrect }}</x-Tables.td>
-                            <x-Tables.td>{{ $Jawab }}</x-Tables.td>
-                            <x-Tables.td>{{ $totalSoal }}</x-Tables.td> <!-- Menampilkan jumlah soal dari tabel soal -->
-                            <x-Tables.td>{{ $nilai }}</x-Tables.td>
-                            <x-Tables.td>
-                                <a href="{{ route('hasil.show', ['ujianId' => $firstItem->ujian->id, 'kategoriId' => $firstItem->soal->kategori->id]) }}"
-                                    class="btn btn-primary">Lihat Detail</a>
-                            </x-Tables.td>
-                        </tr>
-                    @endforeach
+                    @php
+                        // Menghitung jumlah jawaban benar dan salah dalam grup
+                        $correct = $group
+                            ->filter(function ($item) {
+                                return $item->answer === $item->soal->kunci_jawaban; // Jawaban benar
+                            })
+                            ->count();
+                
+                        $incorrect = $group->count() - $correct; // Jawaban salah = total - benar
+                
+                        // Mengambil data dari item pertama dalam grup untuk menampilkan data umum
+                        $firstItem = $group->first();
+                
+                        // Menghitung nilai dengan asumsi setiap jawaban benar bernilai 10 poin
+                        $nilai = $correct * 10;
+                
+                        // Mengambil jumlah soal yang sudah dipublish dari tabel soal berdasarkan kategori
+                        // Menghitung soal yang dipublish dengan kondisi `published` = true
+                        $totalSoal = $total[$firstItem->soal->kategori->id]['published'] ?? 0;
+                
+                        // Mengambil jumlah soal terjawab oleh siswa
+                        $Jawab = $group->count();
+                    @endphp
+                    <tr>
+                        <x-Tables.td>{{ $loop->iteration }}</x-Tables.td>
+                        <x-Tables.td>{{ $firstItem->soal->kategori->name }}</x-Tables.td>
+                        <x-Tables.td>{{ optional($firstItem->ujian)->tanggal_ujian }}</x-Tables.td>
+                        <x-Tables.td>{{ optional($firstItem->ujian)->jam_ujian }}</x-Tables.td>
+                        <x-Tables.td>{{ $correct }}</x-Tables.td>
+                        <x-Tables.td>{{ $incorrect }}</x-Tables.td>
+                        <x-Tables.td>{{ $Jawab }}</x-Tables.td>
+                        <x-Tables.td>{{ $totalSoal }}</x-Tables.td> <!-- Menampilkan jumlah soal yang dipublish -->
+                        {{-- <x-Tables.td>{{ $nilai }}</x-Tables.td> --}}
+                        <x-Tables.td>
+                            <a href="{{ route('hasil.show', ['ujianId' => $firstItem->ujian->id, 'kategoriId' => $firstItem->soal->kategori->id]) }}"
+                               class="btn btn-primary">Lihat Detail</a>
+                        </x-Tables.td>
+                    </tr>
+                @endforeach
+                
                 </tbody>
             </x-Tables.tabel>
             

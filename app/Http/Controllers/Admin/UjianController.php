@@ -28,8 +28,8 @@ class UjianController extends Controller
                 $q->where('tanggal_ujian', 'like', "%{$search}%");
             });
         })
-        ->select('id', 'kategori_id', 'category_id', 'jam_ujian', 'tanggal_ujian', 'kelas', 'durasi', DB::raw('COUNT(*) as student_count'))
-        ->groupBy('id', 'kategori_id', 'category_id', 'jam_ujian', 'tanggal_ujian', 'kelas', 'durasi') // Add 'id' to the groupBy clause
+        ->select( 'kategori_id', 'category_id', 'jam_ujian', 'tanggal_ujian', 'kelas', 'durasi', DB::raw('COUNT(*) as student_count'))
+        ->groupBy( 'kategori_id', 'category_id', 'jam_ujian', 'tanggal_ujian', 'kelas', 'durasi') // Add 'id' to the groupBy clause
         ->paginate(10);
     
 
@@ -85,15 +85,21 @@ class UjianController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit($id)
+    public function edit($kategori_id, $jam_ujian)
     {
-        $ujian = Ujian::find($id);
+        // Retrieve the ujian record using kategori_id and jam_ujian
+        $ujian = Ujian::where('kategori_id', $kategori_id)
+                      ->where('jam_ujian', $jam_ujian)
+                      ->firstOrFail(); // Retrieve the first record or fail
+    
         $user = Auth::id();
         $siswa = Student::all();
-        $kategori =  Kategori::all();
-        $jenis_ujian  = ModelsCategoryExam::all();
+        $kategori = Kategori::all();
+        $jenis_ujian = ModelsCategoryExam::all();
+    
         return view('admin.ujian.edit', compact('ujian', 'siswa', 'kategori', 'jenis_ujian', 'user'));
     }
+    
 
     /**
      * Update the specified resource in storage.

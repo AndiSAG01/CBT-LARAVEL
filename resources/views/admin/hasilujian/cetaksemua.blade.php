@@ -78,7 +78,7 @@
                             <th>Jam</th>
                             <th>Benar</th>
                             <th>Salah</th>
-                            <th>Nilai</th>
+                            {{-- <th>Nilai</th> --}}
                         </tr>
                     </thead>
                     <tbody>
@@ -102,7 +102,7 @@
                                 <td>{{ optional($firstItem->ujian)->jam_ujian }}</td>
                                 <td>{{ $correct }}</td>
                                 <td>{{ $incorrect }}</td>
-                                <td>{{ $correct * 10 }}</td>
+                                {{-- <td>{{ $correct * 10 }}</td> --}}
                             </tr>
                         @endforeach
                     </tbody>

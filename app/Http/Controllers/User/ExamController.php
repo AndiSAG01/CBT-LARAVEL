@@ -91,5 +91,7 @@ class ExamController extends Controller
         return redirect()->route('jadwal.index', ['id' => $request->ujian_id])
             ->with('success', 'Anda Telah Selesai Mengerjakan Ujian 😉');
     }
+
+    
     
 }
