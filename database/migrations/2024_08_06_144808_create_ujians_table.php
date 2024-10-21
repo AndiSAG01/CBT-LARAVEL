@@ -17,9 +17,9 @@ return new class extends Migration
             $table->string('tanggal_ujian');
             $table->string('jam_ujian');
             $table->unsignedBigInteger('category_id');
-            $table->unsignedBigInteger('kategori_id');
+            $table->foreignId('kategori_id')->constrained()->cascadeOnDelete();
             $table->unsignedBigInteger('siswa_id');
-            $table->unsignedBigInteger('user_id')->nullable();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete()->nullable();
             $table->string('durasi');
             $table->string('status')->nullable();
             $table->string('siswa_names')->nullable();

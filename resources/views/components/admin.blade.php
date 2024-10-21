@@ -120,9 +120,9 @@
                             <div class="drop-down dropdown-profile animated fadeIn dropdown-menu">
                                 <div class="dropdown-content-body">
                                     <ul class="text-center">
-                                        <form action="{{ route('logout') }}" method="POST">
+                                        <form action="{{ route('logout') }}"  method="POST">
                                             @csrf
-                                            <button type="submit">
+                                            <button type="submit" class="dropdown">
                                                 <li><i class="icon-key"></i> <span>Logout</span>
                                                 </li>
                                             </button>

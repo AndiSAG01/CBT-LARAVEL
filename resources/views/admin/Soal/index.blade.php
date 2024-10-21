@@ -37,8 +37,8 @@
                             <div class="relative flex-grow">
                                 <div
                                     class="absolute grid w-5 h-5 top-2/4 right-3 -translate-y-2/4 place-items-center text-blue-gray-500">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                                        stroke="currentColor" aria-hidden="true" class="w-5 h-5">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                        stroke-width="1.5" stroke="currentColor" aria-hidden="true" class="w-5 h-5">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z">
                                         </path>
@@ -48,18 +48,19 @@
                                     class=" rounded-[7px] border border-blue-gray-200 border-t-transparent bg-transparent px-3 py-2.5 !pr-9 text-sm font-normal text-blue-gray-700 outline outline-0 transition-all placeholder-shown:border placeholder-shown:border-blue-gray-200 placeholder-shown:border-t-blue-gray-200 focus:border-2 focus:border-gray-900 focus:border-t-transparent focus:outline-0 disabled:border-0 disabled:bg-blue-gray-50"
                                     placeholder="Masukan Kode Soal atau Soal Ujian" value="{{ request('search') }}" />
                             </div>
-                    
+
                             <!-- Search Button -->
                             <button type="submit" class="h-10 px-4 py-2 bg-blue-500 text-white rounded-md">
                                 Search
                             </button>
-                    
+
                             <!-- Reset Button -->
-                            <a href="{{ route('soal.index') }}" class="h-10 px-4 py-2 bg-gray-200 text-gray-700 rounded-md">
+                            <a href="{{ route('soal.index') }}"
+                                class="h-10 px-4 py-2 bg-gray-200 text-gray-700 rounded-md">
                                 Reset
                             </a>
                         </form>
-                    </div>                    
+                    </div>
                 </div>
                 <x-Tables.tabel>
                     <thead>
@@ -78,6 +79,7 @@
                             </x-Tables.th>
                             <x-Tables.th>
                                 Publish <i class="fas fa-upload"></i>
+                                <input type="checkbox" id="publish-all" class="publish-all-toggle" style="margin-left: 10px">
                             </x-Tables.th>
                             <th class="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50"></th>
                         </tr>
@@ -240,28 +242,61 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function() {
-            $('.publish-toggle').change(function() {
-                var soalId = $(this).data('id');
-                var isPublished = $(this).is(':checked') ? 1 : 0;
+    // Handle individual publish toggle
+    $('.publish-toggle').change(function() {
+        var soalId = $(this).data('id');
+        var isPublished = $(this).is(':checked') ? 1 : 0;
 
-                $.ajax({
-                    url: '/soal/' + soalId + '/toggle-publish',
-                    type: 'POST',
-                    data: {
-                        _token: '{{ csrf_token() }}',
-                        published: isPublished
-                    },
-                    success: function(response) {
-                        console.log(response.message);
-                        alert('Publish status Berhasil Diupdate');
-                    },
-                    error: function(xhr) {
-                        alert('An error occurred while updating the publish status');
-                        console.log(xhr.responseText);
-                    }
-                });
-            });
+        $.ajax({
+            url: '/soal/' + soalId + '/toggle-publish',
+            type: 'POST',
+            data: {
+                _token: '{{ csrf_token() }}',
+                published: isPublished
+            },
+            success: function(response) {
+                console.log(response.message);
+                alert('Publish status Berhasil Diupdate');
+            },
+            error: function(xhr) {
+                alert('An error occurred while updating the publish status');
+                console.log(xhr.responseText);
+            }
         });
+    });
+
+    // Handle Publish All toggle
+    $('#publish-all').change(function() {
+        let publishAll = $(this).is(':checked');
+        let checkboxes = $('.publish-toggle');
+
+        checkboxes.each(function() {
+            let soalId = $(this).data('id');
+            $(this).prop('checked', publishAll);  // Check/uncheck all boxes
+            
+            // Update the publish status for each question
+            updatePublishStatus(soalId, publishAll ? 1 : 0);
+        });
+    });
+
+    function updatePublishStatus(id, publishStatus) {
+        $.ajax({
+            url: '/soal/' + id + '/toggle-publish',
+            type: 'POST',
+            data: {
+                _token: '{{ csrf_token() }}',
+                published: publishStatus
+            },
+            success: function(response) {
+                console.log(`Question ${id} updated successfully`);
+            },
+            error: function(xhr) {
+                console.error('Error:', xhr.responseText);
+            }
+        });
+    }
+});
+
     </script>
 
 </x-admin>

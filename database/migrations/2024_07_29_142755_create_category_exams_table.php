@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('category_exams', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->unsignedBigInteger('user_id')->nullable();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete()->nullable();
             $table->timestamps();
         });
     }

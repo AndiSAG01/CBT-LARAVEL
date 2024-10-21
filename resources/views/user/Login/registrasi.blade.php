@@ -42,32 +42,50 @@
                                     <label class="form-label" for="form1Example13">Nama</label>
                                     <input type="text" name="name" id="form1Example13" class="form-control" />
                                 </div>
+                                @error('name')
+                                    <span class="text-danger">{{ $message }}</span>
+                                @enderror
                                 <!-- Email input -->
                                 <div data-mdb-input-init class="form-outline mt-3">
                                     <label class="form-label" for="form1Example13">Email</label>
                                     <input type="email" name="email" id="form1Example13" class="form-control" />
                                 </div>
+                                @error('email')
+                                    <span class="text-danger">{{ $message }}</span>
+                                @enderror
                                   <!-- Password input -->
                                   <div data-mdb-input-init class="form-outline mt-3">
                                       <label class="form-label" for="form1Example23">Password</label>
                                     <input type="password" name="password" id="form1Example23" class="form-control" />
                                 </div>
+                                @error('password')
+                                    <span class="text-danger">{{ $message }}</span>
+                                @enderror
                                   <!-- Password input -->
                                   <div data-mdb-input-init class="form-outline mt-3">
                                       <label class="form-label" for="form1Example23">Konfirmasi Password</label>
                                     <input type="password" name="password_confirmation" id="form1Example23" class="form-control" />
                                 </div>
+                                @error('password_confirmation')
+                                    <span class="text-danger">{{ $message }}</span>
+                                @enderror
         
                                 <!-- Email input -->
                                 <div data-mdb-input-init class="form-outline mt-3">
                                     <label class="form-label" for="form1Example13">Nomor Handphone/Wa</label>
                                     <input type="number" name="number_phone" id="form1Example13" class="form-control" />
                                 </div>
+                                @error('number_phone')
+                                    <span class="text-danger">{{ $message }}</span>
+                                @enderror
                                 <!-- Email input -->
                                 <div data-mdb-input-init class="form-outline mt-3">
                                     <label class="form-label" for="form1Example13">Foto</label>
                                     <input type="file" name="image" id="form1Example13" class="form-control" />
                                 </div>
+                                @error('image')
+                                    <span class="text-danger">{{ $message }}</span>
+                                @enderror
                                 <!-- Email input -->
                                 <div data-mdb-input-init class="form-outline mt-3">
                                     <label class="form-label" for="form1Example13">Kelas</label>
@@ -77,6 +95,9 @@
                                         <option value="Polri">Polri</option>
                                     </select>
                                 </div>
+                                @error('class')
+                                    <span class="text-danger">{{ $message }}</span>
+                                @enderror
                                 <!-- Submit button -->
                                 <button type="submit" data-mdb-button-init data-mdb-ripple-init
                                     class="btn btn-primary btn-lg btn-block mt-3">Register</button>

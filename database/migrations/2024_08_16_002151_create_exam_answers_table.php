@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('exam_answers', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('student_id');
-            $table->unsignedBigInteger('ujian_id');
-            $table->unsignedBigInteger('soal_id');
+            $table->foreignId('student_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('ujian_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('soal_id')->constrained()->cascadeOnDelete();
             $table->string('answer');
             $table->string('status')->nullable();
             $table->timestamp('start_time')->nullable();

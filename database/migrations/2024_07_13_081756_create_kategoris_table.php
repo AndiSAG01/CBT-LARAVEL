@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('kategoris', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id')->nullable();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete()->nullable();
             $table->string('name');
             $table->timestamps();
         });

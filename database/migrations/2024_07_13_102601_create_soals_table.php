@@ -14,14 +14,14 @@ return new class extends Migration
         Schema::create('soals', function (Blueprint $table) {
             $table->id();
             $table->string('code');
-            $table->unsignedBigInteger('kategori_id')->nullable();
-            $table->unsignedBigInteger('user_id')->nullable();
+            $table->foreignId('kategori_id')->constrained()->cascadeOnDelete()->nullable();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete()->nullable();
             $table->longText('soal_ujian');
             $table->longText('kunci_A');
             $table->longText('kunci_B');
             $table->longText('kunci_C');
             $table->longText('kunci_D');
-            $table->longText('kunci_E');
+            $table->longText('kunci_E')->nullable();
             $table->string('kunci_jawaban');
             $table->boolean('published')->default(0); // New column for publish status
             $table->timestamps();
